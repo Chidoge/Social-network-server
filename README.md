@@ -1,2 +1,2 @@
-# UoA-CS302-2018-P2-lcho484
+Web server can be run just using the command - python mainapp.py
 
