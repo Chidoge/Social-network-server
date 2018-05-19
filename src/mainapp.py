@@ -144,13 +144,25 @@ class MainApp(object):
             dbFilename = workingDir + "/db/profiles.db"
             f = open(dbFilename,"r")
             conn = sqlite3.connect(dbFilename)
-            cur = conn.cursor()
-            cur.execute("SELECT * FROM Profile")
+            cursor = conn.cursor()
+            cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile")
 
-            rows = cur.fetchall()
- 
+            rows = cursor.fetchall()
+
+            #Show info
             for row in rows:
-                print(row)
+                for col in range (0,4) :
+                    if (col == 0) :
+                        page += ('</br><b>Profile</b></br>')
+                        page += ('Name : ' +str(row[col]) + '</br>')
+                    elif (col == 1) :
+                        page += ('Position : ' +str(row[col]) + '</br>')
+                    elif (col == 2) :
+                        page += ('Description : ' +str(row[col]) + '</br>')
+                    elif (col == 3) :
+                        page += ('Location : ' +str(row[col]) + '</br>')
+                    elif (col == 4) :
+                        page += ('Picture : ' +str(row[col]) + '</br>')
 
             return page    
 
