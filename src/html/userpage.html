@@ -2,14 +2,18 @@
 <html>
 
 	<head>
-		<title>User-Page </title>
+		<title>User-Page</title>
+		<link rel="stylesheet" href="style.css" type = text/css>
 	</head>
 
 	<body>
-		My profile
+		<p>My profile</p>
 		<br/>
         <form action = "/showOnlineUsers" method = "post">
         <input type ="submit" value="See who's online"/></form>
+
+        <form action = "/editProfile" method = "post">
+        <input type ="submit" value="Edit My Profile"/></form>
         <form action = "/signout" method = "post">
         <input type ="submit" value="Sign out"/></form>
 	</body>

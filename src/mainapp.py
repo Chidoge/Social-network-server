@@ -20,6 +20,7 @@ import mimetypes
 import os
 import urllib2
 import sqlite3
+import profiles
 
 class MainApp(object):
 
@@ -42,7 +43,6 @@ class MainApp(object):
     @cherrypy.expose
     def index(self):
 
-        cherrypy.response.headers['Content-Type'] = mimetypes.guess_type('.html')[0]
 
         #Serve main page html
         workingDir = os.path.dirname(__file__)
@@ -54,7 +54,7 @@ class MainApp(object):
         #Try to access username key, if empty, session is expired and should give user option to login.
         try:
             randomString = cherrypy.session['username']
-            raise cherrypy.HTTPRedirect('/userPage')
+            raise cherrypy.HTTPRedirect('/showUserPage')
 
         #There is no username
         except KeyError :
@@ -69,7 +69,7 @@ class MainApp(object):
         try:
             #If user is logged in, send them to the user page
             randomString = cherrypy.session['username']
-            raise cherrypy.HTTPRedirect('/userPage')
+            raise cherrypy.HTTPRedirect('/showUserPage')
 
         except KeyError : 
 
@@ -106,7 +106,7 @@ class MainApp(object):
 
             r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + cherrypy.session['username'] + "&password=" + cherrypy.session['password'])
             response = r.read()
-            errorCode = response[0]
+            errorCode = response[0] 
             
             if (errorCode == '0'):
                 Page = response
@@ -120,9 +120,11 @@ class MainApp(object):
 
         return Page
 
+
+
     #Profile page
     @cherrypy.expose
-    def userPage(self) :
+    def showUserPage(self) :
 
         #Check if user is logged in before displaying
         try:
@@ -145,13 +147,20 @@ class MainApp(object):
             f = open(dbFilename,"r")
             conn = sqlite3.connect(dbFilename)
             cursor = conn.cursor()
+
+
+            cursor.execute("UPDATE Profile SET Position = 'Doctor' WHERE Name = 'Lincoln Choy' ")
             cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile")
+            conn.commit()
+
+
 
             rows = cursor.fetchall()
 
             #Show info
             for row in rows:
-                for col in range (0,4) :
+
+                for col in range (0,4):
                     if (col == 0) :
                         page += ('</br><b>Profile</b></br>')
                         page += ('Name : ' +str(row[col]) + '</br>')
@@ -164,15 +173,14 @@ class MainApp(object):
                     elif (col == 4) :
                         page += ('Picture : ' +str(row[col]) + '</br>')
 
+            conn.close()
             return page    
 
         #If not logged in and trying to access userpage, bring them back to the default page
         except KeyError :
 
             raise cherrypy.HTTPRedirect('/')
-
             
-
 
     #LOGGING IN AND OUT
     @cherrypy.expose
@@ -187,7 +195,7 @@ class MainApp(object):
         errorCode = self.authoriseUserLogin(username,password)
 
         if (errorCode == 0) :
-            raise cherrypy.HTTPRedirect('/userPage')
+            raise cherrypy.HTTPRedirect('/showUserPage')
         else :
             #If failed password attempts exist,limit attempts to 3 then lock user out(currently only sends user back to index).
             try :
@@ -206,22 +214,22 @@ class MainApp(object):
 
     @cherrypy.expose
     def signout(self):
+
         """Logs the current user out, expires their session"""
-        username = cherrypy.session.get('username')
+
         try :
+
             username = cherrypy.session['username']
             hashedPW = cherrypy.session['password']
-            print username
-            print hashedPW
             r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + username + "&password=" + hashedPW + "&enc=0")
             response = r.read()
-            print response
         
             if (response[0] == "0") :
                     cherrypy.lib.sessions.expire()
                     raise cherrypy.HTTPRedirect('/')
             else :
                 raise cherrypy.HTTPRedirect('/')
+
         except KeyError:
             raise cherrypy.HTTPRedirect('/')
     
@@ -244,6 +252,17 @@ class MainApp(object):
         else :
             return 1
 
+    @cherrypy.expose
+    def editProfile(self) :
+    
+        return profiles.editProfile()
+        
+    @cherrypy.expose
+    def saveEdit(self,name,position,description,location,picture) :
+
+        profiles.saveEdit(name,position,description,location,picture)
+
+
 @cherrypy.expose
 def runMainApp():
     # Create an instance of MainApp and tell Cherrypy to send all requests under / to it. (ie all of them)
@@ -263,4 +282,5 @@ def runMainApp():
     cherrypy.engine.block()
 
 #Run the function to start everything
+
 runMainApp()
