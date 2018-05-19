@@ -147,8 +147,9 @@ class MainApp(object):
             cursor = conn.cursor()
             cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile")
 
-            rows = cursor.fetchall()
 
+            rows = cursor.fetchall()
+            page += str(rows)
             #Show info
             for row in rows:
                 for col in range (0,4) :
@@ -233,7 +234,7 @@ class MainApp(object):
     @cherrypy.expose
     def saveEdit(self,name,position,description,location,picture):
 
-        profiles.saveEdit(name,position,description,location,picture)
+        return profiles.saveEdit(name,position,description,location,picture)
 
     #Compares user typed hashed password with server hashed password.
     @cherrypy.expose
