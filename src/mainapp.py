@@ -106,7 +106,7 @@ class MainApp(object):
 
             r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + cherrypy.session['username'] + "&password=" + cherrypy.session['password'])
             response = r.read()
-            errorCode = response[0] 
+            errorCode = response[0]
             
             if (errorCode == '0'):
                 Page = response
@@ -119,8 +119,6 @@ class MainApp(object):
             Page = 'Session expired'
 
         return Page
-
-
 
     #Profile page
     @cherrypy.expose
@@ -147,20 +145,13 @@ class MainApp(object):
             f = open(dbFilename,"r")
             conn = sqlite3.connect(dbFilename)
             cursor = conn.cursor()
-
-
-            cursor.execute("UPDATE Profile SET Position = 'Doctor' WHERE Name = 'Lincoln Choy' ")
             cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile")
-            conn.commit()
-
-
 
             rows = cursor.fetchall()
 
             #Show info
             for row in rows:
-
-                for col in range (0,4):
+                for col in range (0,4) :
                     if (col == 0) :
                         page += ('</br><b>Profile</b></br>')
                         page += ('Name : ' +str(row[col]) + '</br>')
@@ -173,14 +164,15 @@ class MainApp(object):
                     elif (col == 4) :
                         page += ('Picture : ' +str(row[col]) + '</br>')
 
-            conn.close()
             return page    
 
         #If not logged in and trying to access userpage, bring them back to the default page
         except KeyError :
 
             raise cherrypy.HTTPRedirect('/')
+
             
+
 
     #LOGGING IN AND OUT
     @cherrypy.expose
@@ -214,25 +206,34 @@ class MainApp(object):
 
     @cherrypy.expose
     def signout(self):
-
         """Logs the current user out, expires their session"""
-
+        username = cherrypy.session.get('username')
         try :
-
             username = cherrypy.session['username']
             hashedPW = cherrypy.session['password']
+            print username
+            print hashedPW
             r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + username + "&password=" + hashedPW + "&enc=0")
             response = r.read()
+            print response
         
             if (response[0] == "0") :
                     cherrypy.lib.sessions.expire()
                     raise cherrypy.HTTPRedirect('/')
             else :
                 raise cherrypy.HTTPRedirect('/')
-
         except KeyError:
             raise cherrypy.HTTPRedirect('/')
     
+    @cherrypy.expose
+    def editProfile(self) :
+
+        return profiles.editProfile()
+
+    @cherrypy.expose
+    def saveEdit(self,name,position,description,location,picture):
+
+        profiles.saveEdit(name,position,description,location,picture)
 
     #Compares user typed hashed password with server hashed password.
     @cherrypy.expose
@@ -251,17 +252,6 @@ class MainApp(object):
             return 0
         else :
             return 1
-
-    @cherrypy.expose
-    def editProfile(self) :
-    
-        return profiles.editProfile()
-        
-    @cherrypy.expose
-    def saveEdit(self,name,position,description,location,picture) :
-
-        profiles.saveEdit(name,position,description,location,picture)
-
 
 @cherrypy.expose
 def runMainApp():
@@ -282,5 +272,4 @@ def runMainApp():
     cherrypy.engine.block()
 
 #Run the function to start everything
-
 runMainApp()

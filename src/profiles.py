@@ -5,7 +5,6 @@ import mimetypes
 import os
 import urllib2
 import sqlite3
-import mainapp
 
 @cherrypy.expose
 def editProfile() :
@@ -31,12 +30,13 @@ def saveEdit(name,position,description,location,picture) :
     cursor = conn.cursor()
 
     for i in range (1,5) :
-    	
-	cursor.execute("UPDATE Profile SET" + 'Position = ' + position +  "WHERE Name = 'Lincoln Choy' ")
+    	cursor.execute("UPDATE Profile SET" + 'Position = ' + position +  "WHERE Name = 'Lincoln Choy' ")
 
     conn.commit()
 
     conn.close()
+
+    return "1"
 
      
 
