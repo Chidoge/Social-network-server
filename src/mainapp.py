@@ -149,7 +149,7 @@ class MainApp(object):
 
 
             rows = cursor.fetchall()
-            page += str(rows)
+            
             #Show info
             for row in rows:
                 for col in range (0,4) :
@@ -212,11 +212,9 @@ class MainApp(object):
         try :
             username = cherrypy.session['username']
             hashedPW = cherrypy.session['password']
-            print username
-            print hashedPW
+
             r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + username + "&password=" + hashedPW + "&enc=0")
             response = r.read()
-            print response
         
             if (response[0] == "0") :
                     cherrypy.lib.sessions.expire()
@@ -234,7 +232,9 @@ class MainApp(object):
     @cherrypy.expose
     def saveEdit(self,name,position,description,location,picture):
 
-        return profiles.saveEdit(name,position,description,location,picture)
+        profiles.saveEdit(name,position,description,location,picture)
+
+        raise cherrypy.HTTPRedirect('/showUserPage')
 
     #Compares user typed hashed password with server hashed password.
     @cherrypy.expose
@@ -244,8 +244,6 @@ class MainApp(object):
 
         r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip=122.60.90.158&port=80&location=2")
         response = r.read()
-        print username
-        print password
 
         if (response[0] == '0'):
             cherrypy.session['username'] = username

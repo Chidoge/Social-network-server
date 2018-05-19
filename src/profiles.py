@@ -11,25 +11,32 @@ def editProfile() :
     
     #Get working directory to find html and database file
     workingDir = os.path.dirname(__file__)
-    pos = 0
-    filename = workingDir + "/html/editprofile.html"
-    f = open(filename,"r")
 
+    #Read database
+    dbFilename = workingDir + "/db/profiles.db"
+    f = open(dbFilename,"r")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+    cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile WHERE ID = 1")
+
+    row = cursor.fetchall()
+
+  
     #Serve dynamic html content
     page = '<head>'
     page += '<title>Edit My Profile</title>'          
     page += '</head>'
-    page += '<body>'            
-    page += '<b> My profile </b><br/>'
+    page += '<body>'          
+    page += '<h1><b> My Profile</b></h1><br/>'
     page += '<form action = "/saveEdit" method = "post">'            
-    page += '<p>Name: <input type="text" name="name"/>'
-    page += '<p>Position: <input type="text" name="position" value = "Same"/>'          
-    page += '<p>Description: <input type="text" name="description" value = "What"/>'
-    page += '<p>Location: <input type="text" name="location" value/>'            
-    page += '<p>Picture: <input type="text" name="picture"/>'    
+    page += '<p>Name: <input type="text" name="name" value =' + str(row[0][0]) + '>'
+    page += '<p>Position: <input type="text" name="position" value =' + str(row[0][1]) + '>'          
+    page += '<p>Description: <input type="text" name="description" value =' + str(row[0][2]) + '>'
+    page += '<p>Location: <input type="text" name="location" value =' + str(row[0][3]) + '>'          
+    page += '<p>Picture: <input type="text" name="picture" value =' + str(row[0][4]) + '>'   
     page += '<input type ="submit" value="Edit"/></form>'     
     page += '</body>'
-    f.close()
+
     return page
 
 @cherrypy.expose
@@ -63,7 +70,7 @@ def saveEdit(name,position,description,location,picture) :
 
     conn.close()
 
-    return "1"
+    
 
      
 
