@@ -48,17 +48,17 @@ class MainApp(object):
         workingDir = os.path.dirname(__file__)
         filename = workingDir + "/html/index.html"
         f = open(filename,"r")
-        Page = f.read()
+        page = f.read()
         f.close()
 
         #Try to access username key, if empty, session is expired and should give user option to login.
-        try:
+        try :
             randomString = cherrypy.session['username']
             raise cherrypy.HTTPRedirect('/showUserPage')
 
         #There is no username
         except KeyError :
-            return Page 
+            return page 
         
     
 
@@ -66,7 +66,7 @@ class MainApp(object):
     def login(self):
 
         #Check if user is logged in
-        try:
+        try :
             #If user is logged in, send them to the user page
             randomString = cherrypy.session['username']
             raise cherrypy.HTTPRedirect('/showUserPage')
@@ -102,23 +102,23 @@ class MainApp(object):
     def showOnlineUsers(self):
 
         #Try block - In case the user session is expired somehow
-        try:
+        try :
 
             r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + cherrypy.session['username'] + "&password=" + cherrypy.session['password'])
             response = r.read()
             errorCode = response[0]
             
-            if (errorCode == '0'):
-                Page = response
+            if (errorCode == '0') :
+                page = response
             else :
-                Page = 'Oops! Something broke'
+                page = 'Oops! Something broke'
 
         #There is no username
         except KeyError :
 
-            Page = 'Session expired'
+            page = 'Session expired'
 
-        return Page
+        return page
 
     #Profile page
     @cherrypy.expose
@@ -151,7 +151,7 @@ class MainApp(object):
             rows = cursor.fetchall()
             
             #Show info
-            for row in rows:
+            for row in rows :
                 for col in range (0,4) :
                     if (col == 0) :
                         page += ('</br><b>Profile</b></br>')
@@ -177,9 +177,10 @@ class MainApp(object):
 
     #LOGGING IN AND OUT
     @cherrypy.expose
-    def signin(self, username=None, password=None):
+    def signin(self, username=None, password=None) :
 
         if (username == None and password == None) :
+
             raise cherrypy.HTTPRedirect('/login')
         else :
             pass
@@ -207,6 +208,7 @@ class MainApp(object):
 
     @cherrypy.expose
     def signout(self):
+
         """Logs the current user out, expires their session"""
         username = cherrypy.session.get('username')
         try :
@@ -221,31 +223,47 @@ class MainApp(object):
                     raise cherrypy.HTTPRedirect('/')
             else :
                 raise cherrypy.HTTPRedirect('/')
-        except KeyError:
+        except KeyError :
             raise cherrypy.HTTPRedirect('/')
     
     @cherrypy.expose
     def editProfile(self) :
 
-        return profiles.editProfile()
+        try :
+
+            username = cherrypy.session['username']
+            return profiles.editProfile(username)
+
+        except KeyError :
+            raise cherrypy.HTTPRedirect('/')
+
 
     @cherrypy.expose
     def saveEdit(self,name,position,description,location,picture):
 
-        profiles.saveEdit(name,position,description,location,picture)
 
-        raise cherrypy.HTTPRedirect('/showUserPage')
+        try :
+
+            username = cherrypy.session['username']
+            profiles.saveEdit(username,name,position,description,location,picture)
+            raise cherrypy.HTTPRedirect('/showUserPage')
+
+        except KeyError :
+
+            raise cherrypy.HTTPRedirect('/')
+            
+
 
     #Compares user typed hashed password with server hashed password.
     @cherrypy.expose
-    def authoriseUserLogin(self,username,password):
+    def authoriseUserLogin(self,username,password) :
 
         hashedPW = hashlib.sha256(password+username).hexdigest()
 
         r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip=122.60.90.158&port=80&location=2")
         response = r.read()
 
-        if (response[0] == '0'):
+        if (response[0] == '0') :
             cherrypy.session['username'] = username
             cherrypy.session['password'] = hashedPW
             return 0
@@ -253,7 +271,7 @@ class MainApp(object):
             return 1
 
 @cherrypy.expose
-def runMainApp():
+def runMainApp() :
     # Create an instance of MainApp and tell Cherrypy to send all requests under / to it. (ie all of them)
     cherrypy.tree.mount(MainApp(), "/")
 
