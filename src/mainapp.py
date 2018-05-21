@@ -24,7 +24,8 @@ import socket
 
 #Student defined files
 import profiles
-import messageClass
+import communication
+import users
 
 
 class MainApp(object):
@@ -65,100 +66,6 @@ class MainApp(object):
             return page 
         
 
-    #Login function
-    @cherrypy.expose
-    def login(self):
-
-        #Check if user is logged in
-        try:
-            #If user is logged in, send them to the user page
-            randomString = cherrypy.session['username']
-            raise cherrypy.HTTPRedirect('/showUserPage')
-
-        except KeyError: 
-            #Get working directory to find html file
-            workingDir = os.path.dirname(__file__)
-            filename = workingDir + "/html/login.html"
-            f = open(filename,"r")
-            page = f.read()
-            f.close()
-
-        try:
-
-            #Limit user to 3 password attempts
-            attempts = cherrypy.session['attempts']
-
-            if (attempts < 3):
-                page += '</br><center><div style="color:red">Sorry, that username or password was incorrect. Please try again.</div></center>'
-                page += '<center><div style="color:red">Attempts remaining : ' + str(3-attempts ) + '</div></center><br/>'
-
-            else:
-                raise cherrypy.HTTPRedirect('/')
-
-
-        except KeyError:
-            pass
-
-
-        return page
-    
-
-    #Shows online users
-    @cherrypy.expose
-    def showOnlineUsers(self):
-
-        #Check the user is logged in
-        try :
-
-            #Call API to check for other online users
-            r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + cherrypy.session['username'] + "&password=" + cherrypy.session['password'])
-            response = r.read()
-            errorCode = response[0]
-
-            #Split API response using white space as tokeniser
-            users = response.split()
-
-            #Prepare database for storing online users
-            workingDir = os.path.dirname(__file__)
-            dbFilename = workingDir + "/db/online_users.db"
-            f = open(dbFilename,"r+")
-            conn = sqlite3.connect(dbFilename)
-            cursor = conn.cursor()
-
-            #User list starts after 4th white space
-            for i in range(5,len(users)) :
-
-                userUPI= users[i].split(',')[0]
-                userIP = users[i].split(',')[2]
-
-                #Search for existing user in database
-                cursor.execute("SELECT IP FROM OnlineUsers WHERE UPI = ?",[userUPI])
-                row = cursor.fetchall()
-
-                #Insert new user information if new,update existing user information
-                if (len(row) == 0):
-                    cursor.execute("INSERT INTO OnlineUsers(UPI,IP) VALUES (?,?)",[userUPI,userIP])
-                else:
-                    cursor.execute("UPDATE OnlineUsers SET IP = ? WHERE UPI = ?",[userIP,userUPI])
-
-
-            conn.commit()
-            conn.close()
-            #If API was called successfully, show the users
-            if (errorCode == '0') :
-                page = response
-
-            #Error message
-            else :
-                page = 'Oops! Something broke'
-
-        #There is no username
-        except KeyError :
-            page = 'Session expired'
-
-        return page
-
-
     #Profile page
     @cherrypy.expose
     def showUserPage(self):
@@ -175,8 +82,43 @@ class MainApp(object):
 
             raise cherrypy.HTTPRedirect('/')
 
-            
+#------------------------------------------END-----------------------------------------#
 
+
+
+
+
+#----------------------------------- LOGIN METHODS -------------------------------------#
+
+    #Login function
+    @cherrypy.expose
+    def login(self):
+        #Check if user is logged in
+        try:
+            #If user is logged in, send them to the user page
+            randomString = cherrypy.session['username']
+            raise cherrypy.HTTPRedirect('/showUserPage')
+        except KeyError: 
+            #Get working directory to find html file
+            workingDir = os.path.dirname(__file__)
+            filename = workingDir + "/html/login.html"
+            f = open(filename,"r")
+            page = f.read()
+            f.close()
+        try:
+
+            #Limit user to 3 password attempts
+            attempts = cherrypy.session['attempts']
+            if (attempts < 3):
+                page += '</br><center><div style="color:red">Sorry, that username or password was incorrect. Please try again.</div></center>'
+                page += '<center><div style="color:red">Attempts remaining : ' + str(3-attempts ) + '</div></center><br/>'
+            else:
+                raise cherrypy.HTTPRedirect('/')
+
+        except KeyError:
+            pass
+
+        return page
 
     #LOGGING IN AND OUT
     @cherrypy.expose
@@ -194,6 +136,7 @@ class MainApp(object):
         #Successful log in
         if (errorCode == 0):
             raise cherrypy.HTTPRedirect('/showUserPage')
+
 
         #Failed log in.
         else:
@@ -215,7 +158,7 @@ class MainApp(object):
                 raise cherrypy.HTTPRedirect('/login')
 
 
-
+    #Log out API
     @cherrypy.expose
     def signout(self):
 
@@ -240,39 +183,7 @@ class MainApp(object):
         #If user isn't logged in, this method redirects user to main page
         except KeyError:
             raise cherrypy.HTTPRedirect('/')
-    
 
-
-    @cherrypy.expose
-    def editProfile(self):
-
-        #Check if user is logged in
-        try:
-            username = cherrypy.session['username']
-            return profiles.editProfile(username)
-
-        except KeyError:
-            raise cherrypy.HTTPRedirect('/')
-
-
-
-    @cherrypy.expose
-    def saveEdit(self,name,position,description,location,picture):
-
-        #Check if user is logged in
-        try:
-            username = cherrypy.session['username']
-            profiles.saveEdit(username,name,position,description,location,picture)
-            raise cherrypy.HTTPRedirect('/showUserPage')
-
-        except KeyError:
-            raise cherrypy.HTTPRedirect('/')
-            
-
-    @cherrypy.expose
-    def receiveMessage(self,sender,destination,message,encoding = None,encryption = None,hashing = None,hash = None,decryptionKey = None,groupID = None):
-
-        messageClass.receiveMessage(sender,destination,message,encoding,encryption,hashing,hash,decryptionKey,groupID)
 
 
     #Compares user typed hashed password with server hashed password.
@@ -283,7 +194,7 @@ class MainApp(object):
         hashedPW = hashlib.sha256(password+username).hexdigest()
 
         #Call API to request a log in.
-        r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip=122.60.90.158&port=80&location=2")
+        r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip=122.60.90.158&port="+str(listen_port)+"&location=2")
 
         #Check if login was successful
         response = r.read()
@@ -296,7 +207,100 @@ class MainApp(object):
             return 1
 
 
+#-----------------------------------------END------------------------------------------#
 
+
+
+
+
+#----------------------------------- PROFILE METHODS -----------------------------------#
+
+    #Lets user edit their profile
+    @cherrypy.expose
+    def editProfile(self):
+
+        #Check if user is logged in
+        try:
+            username = cherrypy.session['username']
+            return profiles.editProfile(username)
+
+        except KeyError:
+            raise cherrypy.HTTPRedirect('/')
+
+
+    #Helper function for editProfile(self)
+    @cherrypy.expose
+    def saveEdit(self,name,position,description,location,picture):
+
+        #Check if user is logged in
+        try:
+            username = cherrypy.session['username']
+            profiles.saveEdit(username,name,position,description,location,picture)
+            raise cherrypy.HTTPRedirect('/showUserPage')
+
+        except KeyError:
+            raise cherrypy.HTTPRedirect('/')
+
+#----------------------------------------------END---------------------------------------#
+
+
+
+
+
+#-----------------------------------OTHER CLIENT METHODS---------------------------------#
+    
+    #Returns the page that shows everyone who's online
+    @cherrypy.expose
+    def showOnlineUsers(self):
+
+        return users.showOnlineUsers()
+
+#----------------------------------------------END---------------------------------------#
+
+
+
+
+
+#---------------------------------- COMMUNICATION(CLIENT-CLIENT) METHODS -----------------#
+    
+    #Method for sending message(calls other clients receive message)
+    @cherrypy.expose
+    def sendMessage(self,receiver,ip,port,message):
+        try:
+            username = cherrypy.session['username']
+            r = urllib2.urlopen("http://"+ip+":"+port+"/receiveMessage?sender="+username+"&destination="+receiver+"&message="+str(message))
+
+        except KeyError:
+
+            return 'Didnt work'
+
+    
+    @cherrypy.expose
+    def send(self):
+
+        #Serve main page html
+        workingDir = os.path.dirname(__file__)
+        filename = workingDir + "/html/chat.html"
+        f = open(filename,"r")
+        page = f.read()
+        f.close()
+        return page
+
+
+    #Public(Common) API for receiving message
+    @cherrypy.expose
+    def receiveMessage(self,sender,destination,message,encoding = None,encryption = None,hashing = None,hash = None,decryptionKey = None,groupID = None):
+
+        return communication.receiveMessage(sender,destination,message,encoding,encryption,hashing,hash,decryptionKey,groupID)
+
+
+#-------------------------------------------END--------------------------------------------#
+
+
+
+
+
+#-------------------------------------RUNS THE SERVER--------------------------------------#
 
 @cherrypy.expose
 def runMainApp():
@@ -309,12 +313,14 @@ def runMainApp():
     print "========================="
     print "University of Auckland"
     print "COMPSYS302 - Software Design Application"
-    print "========================================"  
+    print "========================================" 
 
     # Start the web server
     cherrypy.engine.start()
     # And stop doing anything else. Let the web server take over.
     cherrypy.engine.block()
+
+#-------------------------------------------END---------------------------------------------------#
 
 #Run the function to start everything
 runMainApp()

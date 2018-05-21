@@ -1,3 +1,4 @@
+""" This """
 import cherrypy
 import json
 import hashlib
@@ -7,7 +8,8 @@ import urllib2
 import sqlite3
 
 @cherrypy.expose
-def showUserPage() :
+def showUserPage():
+
     #Get working directory to find html and database file
     workingDir = os.path.dirname(__file__)
             
@@ -27,8 +29,8 @@ def showUserPage() :
     rows = cursor.fetchall()
             
     #Show info
-    for row in rows :
-        for col in range (0,4) :
+    for row in rows:
+        for col in range (0,4):
             if (col == 0) :
                 page += ('</br><b>Profile</b></br>')
                 page += ('Name : ' +str(row[col]) + '</br>')
@@ -46,7 +48,7 @@ def showUserPage() :
 
 
 @cherrypy.expose
-def editProfile(username) :
+def editProfile(username):
     
     #Get working directory to find html and database file
     workingDir = os.path.dirname(__file__)
@@ -77,8 +79,10 @@ def editProfile(username) :
 
     return page
 
+
+
 @cherrypy.expose
-def saveEdit(username,name,position,description,location,picture) :
+def saveEdit(username,name,position,description,location,picture):
     
     #Get working directory to find html and database file
     workingDir = os.path.dirname(__file__)
