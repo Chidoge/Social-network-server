@@ -110,7 +110,9 @@ def saveEdit(username,name,position,description,location,picture):
 
     conn.close()
 
-    
+@cherrypy.expose
+def viewProfile():
+    pass
 
      
 

@@ -241,6 +241,11 @@ class MainApp(object):
         except KeyError:
             raise cherrypy.HTTPRedirect('/')
 
+    @cherrypy.expose
+    def viewProfile(self):
+
+        profiles.viewProfile()
+
 #----------------------------------------------END---------------------------------------#
 
 
@@ -253,6 +258,7 @@ class MainApp(object):
     @cherrypy.expose
     def showOnlineUsers(self):
 
+        users.saveOnlineUsers()
         return users.showOnlineUsers()
 
 #----------------------------------------------END---------------------------------------#
