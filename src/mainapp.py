@@ -11,7 +11,7 @@
 
 # The address we listen for connections on
 listen_ip = "0.0.0.0"
-listen_port = 1234
+listen_port = 15010
 
 import cherrypy
 import json
@@ -20,7 +20,12 @@ import mimetypes
 import os
 import urllib2
 import sqlite3
+import socket
+
+#Student defined files
 import profiles
+import messageClass
+
 
 class MainApp(object):
 
@@ -59,6 +64,7 @@ class MainApp(object):
         except KeyError:
             return page 
         
+
     #Login function
     @cherrypy.expose
     def login(self):
@@ -263,6 +269,11 @@ class MainApp(object):
             raise cherrypy.HTTPRedirect('/')
             
 
+    @cherrypy.expose
+    def receiveMessage(self,sender,destination,message,encoding = None,encryption = None,hashing = None,hash = None,decryptionKey = None,groupID = None):
+
+        messageClass.receiveMessage(sender,destination,message,encoding,encryption,hashing,hash,decryptionKey,groupID)
+
 
     #Compares user typed hashed password with server hashed password.
     @cherrypy.expose
@@ -283,6 +294,8 @@ class MainApp(object):
             return 0
         else :
             return 1
+
+
 
 
 @cherrypy.expose
