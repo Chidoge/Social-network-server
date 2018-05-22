@@ -77,9 +77,10 @@ def sendMessage(message):
 
         return 'Session expired'
 
+
 @cherrypy.expose
 def getChatPage(userUPI):
-    
+
     #Serve chat page html
     workingDir = os.path.dirname(__file__)
     filename = workingDir + "/html/newchat.html"
@@ -88,3 +89,10 @@ def getChatPage(userUPI):
     f.close()
     cherrypy.session['chatTo'] = userUPI
     return page
+
+
+#Public Ping API for checking if this client is online
+@cherrypy.expose
+def ping(self,sender):
+
+    return '0'

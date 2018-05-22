@@ -41,7 +41,7 @@ class MainApp(object):
     @cherrypy.expose
     def default(self, *args, **kwargs):
         """The default page, given when we don't recognise where the request is for."""
-        page = "404 Error : Website not found are you sure bro"
+        page = "404 Error : Website not found"
         cherrypy.response.status = 404
         return page
 
@@ -52,7 +52,7 @@ class MainApp(object):
 
         #Serve main page html
         workingDir = os.path.dirname(__file__)
-        filename = workingDir + "/html/index.html"
+        filename = workingDir + "/html/login.html"
         f = open(filename,"r")
         page = f.read()
         f.close()
@@ -73,16 +73,12 @@ class MainApp(object):
 
 #----------------------------------- LOGIN METHODS -------------------------------------#
 
-    #Login function
-    @cherrypy.expose
-    def login(self):
-        
-        return login.login()
 
     #LOGGING IN AND OUT
     @cherrypy.expose
     def signin(self, username=None, password=None):
-
+        print username
+        print password
         login.signin(username,password)
 
 
@@ -176,12 +172,11 @@ class MainApp(object):
         return communication.getChatPage(userUPI)
 
 
-
     #Public Ping API for checking if this client is online
     @cherrypy.expose
     def ping(self,sender):
 
-        return '0'
+        return communication.ping()
 
 
     #Public(Common) API for receiving message
@@ -203,12 +198,10 @@ class MainApp(object):
 def runMainApp():
 
     conf = {
-    '/':{
-        'tools.sessions.on' : True,
-        'tools.staticdir.root' : os.path.abspath(os.getcwd()) 
-        },
-        '/static':{
-            'tools.staticdir.on' : True,
+
+        '/static' : {
+            'tools.staticdir.on'  : True,
+            'tools.staticdir.dir' : os.path.dirname(__file__)
             
         }
     }

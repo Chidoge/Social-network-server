@@ -6,38 +6,8 @@ import os
 import urllib2
 import sqlite3
 
-# The address we listen for connections on
-listen_ip = "0.0.0.0"
 listen_port = 15010
 
-#Login function
-@cherrypy.expose
-def login():
-	#Check if user is logged in
-    try:
-        #If user is logged in, send them to the user page
-        randomString = cherrypy.session['username']
-        raise cherrypy.HTTPRedirect('/showUserPage')
-    except KeyError: 
-        #Get working directory to find html file
-        workingDir = os.path.dirname(__file__)
-        filename = workingDir + "/html/login.html"
-        f = open(filename,"r")
-        page = f.read()
-        f.close()
-    try:
-        #Limit user to 3 password attempts
-        attempts = cherrypy.session['attempts']
-        if (attempts < 3):
-            page += '</br><center><div style="color:red">Sorry, that username or password was incorrect. Please try again.</div></center>'
-            page += '<center><div style="color:red">Attempts remaining : ' + str(3-attempts ) + '</div></center><br/>'
-        else:
-            raise cherrypy.HTTPRedirect('/')
-
-    except KeyError:
-        pass
-
-    return page
 
 
 #LOGGING IN AND OUT

@@ -1,14 +1,27 @@
-<!D0CTYPE html>
+<!DOCTYPE html>
 <html>
+<head><link href="/static/css/loginStyles.css" rel = "stylesheet" type = "text/css"</head>
+<body>
 
-	<head>
-		<title>Login</title>
-	</head>
-	
-	<body>
-		<form action ="/signin" method="post" enctype="multipart/form-data">
-		<p><center>Username: <input type="text" name="username"/></center><p>
-		<p><center>Password: <input type="password" name="password"/></center><p>
-		<center><input type ="submit" value="Login"/></form></center>
-	</body>
-<html
+  
+<form action="/signin">
+	<h1><center><strong>CS302 Web Server</strong><center></h1>
+    <div class="container">
+      <label for="username"><b>Username</b></label>
+      <input type="text" placeholder="Username" name="username" required>
+
+      <label for="password"><b>Password</b></label>
+      <input type="password" placeholder="Password" name="password" required>
+        
+      <button type="submit">Login</button>
+      <label>
+      </label>
+    </div>
+
+    <div class="container" style="background-color:#f1f1f1">
+    </div>
+</form>
+
+
+</body>
+</html>

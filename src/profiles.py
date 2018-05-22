@@ -7,6 +7,8 @@ import os
 import urllib2
 import sqlite3
 
+
+#Shows main page after login
 @cherrypy.expose
 def showUserPage():
 
@@ -51,7 +53,7 @@ def showUserPage():
         return page 
     #If not logged in and trying to access userpage, bring them back to the default page
     except KeyError:
-        
+
         raise cherrypy.HTTPRedirect('/')   
 
 #Brings user to profile edit page
