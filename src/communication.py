@@ -83,7 +83,7 @@ def getChatPage(userUPI):
 
     #Serve chat page html
     workingDir = os.path.dirname(__file__)
-    filename = workingDir + "/html/newchat.html"
+    filename = workingDir + "/html/chat.html"
     f = open(filename,"r")
     page = f.read()
     f.close()

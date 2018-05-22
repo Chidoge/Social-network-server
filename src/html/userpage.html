@@ -3,19 +3,19 @@
 
 	<head>
 		<title>User-Page</title>
-		<link rel="stylesheet" href="./static/html/style.css" type = text/css>
+		<link href="/static/css/userpageStyles.css" rel="stylesheet" type = "text/css">
 	</head>
 
 	<body>
-		<p><b>My profile</b></p>
-		<br/>
+		<h1><p>My Profile</p></h1><br/>
+
         <form action = "/showOnlineUsers" method = "post">
-        <input type ="submit" value="See who's online"/></form>
+        <button type="submit" onclick="/show" = "/editProfile">See who's online</button></form>
 
         <form action = "/editProfile" method = "post">
-        <input type ="submit" value="Edit My Profile"/></form>
+        <button type="submit" >Edit my profile</button></form>
 
         <form action = "/signout" method = "post">
-        <input type ="submit" value="Sign out"/></form>
+        <button type="submit">Sign out</button></form>
 	</body>
 </html>

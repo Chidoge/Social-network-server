@@ -3,22 +3,9 @@
 
 	<head>
 		<title>Edit My Profile</title>
+		<link href="/static/css/editProfileStyles.css" rel="stylesheet" type = "text/css">
 	</head>
+ 	<body>          
+ 		<h1><b> My Profile</b></h1><br/>
+		<form action = "/saveEdit" method = "post"> 
 
-	<body>
-		<b> My profile </b>
-		<br/>
-
-                <form action = "/saveEdit" method = "post">
-                <p>Name: <input type="text" name="name"/>
-
-                <p>Position: <input type="text" name="position" value = "Same"/>
-
-                <p>Description: <input type="text" name="description" value = "/>
-
-                <p>Location: <input type="text" name="location" value/>
-
-                <p>Picture: <input type="text" name="picture"/>
-                <input type ="submit" value="Edit"/></form>
-	</body>
-</html>

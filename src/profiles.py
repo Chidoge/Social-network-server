@@ -74,20 +74,17 @@ def editProfile():
         cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile WHERE username = ?" ,[username])
 
         row = cursor.fetchall()
+        filename = workingDir + "/html/editprofile.html"
+        f = open(filename,"r")
+        page = f.read()
 
-        #Serve dynamic html content(show current user information, but let them replace with new information)
-        page = '<head>'
-        page += '<title>Edit My Profile</title>'          
-        page += '</head>'
-        page += '<body>'          
-        page += '<h1><b> My Profile</b></h1><br/>'
-        page += '<form action = "/saveEdit" method = "post">'            
+        #Serve dynamic html content(show current user information, but let them replace with new information)           
         page += '<p>Name: <input type="text" name="name" value ="' + str(row[0][0]) + '">'
         page += '<p>Position: <input type="text" name="position" value ="' + str(row[0][1]) + '">'          
         page += '<p>Description: <input type="text" name="description" value ="' + str(row[0][2]) + '">'
         page += '<p>Location: <input type="text" name="location" value ="' + str(row[0][3]) + '">'          
         page += '<p>Picture: <input type="text" name="picture" value ="' + str(row[0][4]) + '">'   
-        page += '<input type ="submit" value="Edit"/></form>'
+        page += '</br><button type="submit">Edit</button></form>'
         page += '</body>'
 
         return page

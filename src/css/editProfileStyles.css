@@ -1,0 +1,33 @@
+body {
+	font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 18px;
+}
+
+input[type=text] {
+
+    width: 400px;
+    padding: 12px 20px;
+    margin: 15px 0px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #3090C7;
+    color: white;
+    padding: 14px 10px;
+    margin: 0px 0px;
+    border: none;
+    cursor: pointer;
+    width: 400px;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+p {
+   color:#3090C7; 
+}
+h1 {
+   color:#3090C7 
+}

@@ -1,0 +1,23 @@
+body {
+	font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 18px;
+}
+
+
+button {
+    background-color: #3090C7;
+    color: white;
+    padding: 14px 10px;
+    margin: 0px 0px;
+    border: none;
+    cursor: pointer;
+    width: 300px;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+p{
+   color:#3090C7; 
+}
