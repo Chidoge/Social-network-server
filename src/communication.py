@@ -76,3 +76,15 @@ def sendMessage(message):
     except KeyError:
 
         return 'Session expired'
+
+@cherrypy.expose
+def getChatPage(userUPI):
+    
+    #Serve chat page html
+    workingDir = os.path.dirname(__file__)
+    filename = workingDir + "/html/newchat.html"
+    f = open(filename,"r")
+    page = f.read()
+    f.close()
+    cherrypy.session['chatTo'] = userUPI
+    return page

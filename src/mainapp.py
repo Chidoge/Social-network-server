@@ -26,6 +26,7 @@ import socket
 import profiles
 import communication
 import users
+import login
 
 
 class MainApp(object):
@@ -64,23 +65,6 @@ class MainApp(object):
         except KeyError:
             return page 
         
-
-    #Profile page
-    @cherrypy.expose
-    def showUserPage(self):
-
-        #Check if user is logged in before displaying
-        try:
-            #Do something with session username
-            username = cherrypy.session['username']
-            
-            return profiles.showUserPage()
-
-        #If not logged in and trying to access userpage, bring them back to the default page
-        except KeyError:
-
-            raise cherrypy.HTTPRedirect('/')
-
 #------------------------------------------END-----------------------------------------#
 
 
@@ -92,97 +76,21 @@ class MainApp(object):
     #Login function
     @cherrypy.expose
     def login(self):
-        #Check if user is logged in
-        try:
-            #If user is logged in, send them to the user page
-            randomString = cherrypy.session['username']
-            raise cherrypy.HTTPRedirect('/showUserPage')
-        except KeyError: 
-            #Get working directory to find html file
-            workingDir = os.path.dirname(__file__)
-            filename = workingDir + "/html/login.html"
-            f = open(filename,"r")
-            page = f.read()
-            f.close()
-        try:
-
-            #Limit user to 3 password attempts
-            attempts = cherrypy.session['attempts']
-            if (attempts < 3):
-                page += '</br><center><div style="color:red">Sorry, that username or password was incorrect. Please try again.</div></center>'
-                page += '<center><div style="color:red">Attempts remaining : ' + str(3-attempts ) + '</div></center><br/>'
-            else:
-                raise cherrypy.HTTPRedirect('/')
-
-        except KeyError:
-            pass
-
-        return page
+        
+        return login.login()
 
     #LOGGING IN AND OUT
     @cherrypy.expose
     def signin(self, username=None, password=None):
 
-        #If text field was empty
-        if (username == None and password == None):
-            raise cherrypy.HTTPRedirect('/login')
-        else:
-            pass
-
-        #Check their name and password and send them either to the main page, or back to the main login screen
-        errorCode = self.authoriseUserLogin(username,password)
-
-        #Successful log in
-        if (errorCode == 0):
-            raise cherrypy.HTTPRedirect('/showUserPage')
-
-
-        #Failed log in.
-        else:
-
-            #If failed password attempts exist,limit attempts to 3 then lock user out(currently only sends user back to index).
-            try:
-                attempts = cherrypy.session['attempts']
-
-                if (attempts >= 3 ):
-                    raise cherrypy.HTTPRedirect('/')
-
-                else:
-                    cherrypy.session['attempts'] = attempts + 1
-                    raise cherrypy.HTTPRedirect('/login')
-
-            #First attempt
-            except KeyError:
-                cherrypy.session['attempts'] = 1
-                raise cherrypy.HTTPRedirect('/login')
+        login.signin(username,password)
 
 
     #Log out API
     @cherrypy.expose
     def signout(self):
 
-        #Check if user is logged in
-        try:
-            username = cherrypy.session['username']
-            hashedPW = cherrypy.session['password']
-
-            #Call API to log off
-            r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + username + "&password=" + hashedPW + "&enc=0")
-            response = r.read()
-
-            #Successful log off
-            if (response[0] == "0"):
-                    cherrypy.lib.sessions.expire()
-                    raise cherrypy.HTTPRedirect('/')
-
-            #Error logging off
-            else:
-                raise cherrypy.HTTPRedirect('/')
-
-        #If user isn't logged in, this method redirects user to main page
-        except KeyError:
-            raise cherrypy.HTTPRedirect('/')
-
+        login.signout()
 
 
 
@@ -190,25 +98,7 @@ class MainApp(object):
     @cherrypy.expose
     def authoriseUserLogin(self,username,password):
 
-        #Get user's ip address
-        hostIP = urllib2.urlopen('https://api.ipify.org').read()
-
-        #Hash user's password
-        hashedPW = hashlib.sha256(password+username).hexdigest()
-        string = "http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip="+hostIP+"&port="+str(listen_port)+"&location=2"
-
-        #Call API to request a log in.
-        r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip="+hostIP+"&port="+str(listen_port)+"&location=2")
-
-        #Check if login was successful
-        response = r.read()
-        #If error code is 0, save the user, and return 0 to indicate successful login.
-        if (response[0] == '0'):
-            cherrypy.session['username'] = username
-            cherrypy.session['password'] = hashedPW
-            return 0
-        else :
-            return 1
+        return login.authoriseUserLogin(username,password)
 
 
 #-----------------------------------------END------------------------------------------#
@@ -218,40 +108,35 @@ class MainApp(object):
 
 
 #----------------------------------- PROFILE METHODS -----------------------------------#
+    
 
-    #Lets user edit their own profile
+    #Profile page
     @cherrypy.expose
-    def editProfile(self):
+    def showUserPage(self):
+   
+        return profiles.showUserPage()
 
-        #Check if user is logged in
-        try:
-            username = cherrypy.session['username']
-            return profiles.editProfile(username)
-
-        except KeyError:
-            raise cherrypy.HTTPRedirect('/')
-
-
-    #Helper function for editProfile(self)
-    @cherrypy.expose
-    def saveEdit(self,name,position,description,location,picture):
-
-        #Check if user is logged in
-        try:
-            username = cherrypy.session['username']
-            profiles.saveEdit(username,name,position,description,location,picture)
-            raise cherrypy.HTTPRedirect('/showUserPage')
-
-        except KeyError:
-            raise cherrypy.HTTPRedirect('/')
-
-
+        
     #Shows profile of user(userUPI)
     @cherrypy.expose
     def viewProfile(self,userUPI):
 
         return userUPI
         profiles.viewProfile(userUPI)
+
+
+    #Lets user edit their own profile(returns page for editing profile)
+    @cherrypy.expose
+    def editProfile(self):
+
+        return profiles.editProfile()
+
+
+    #Helper function for editProfile(self)
+    @cherrypy.expose
+    def saveEdit(self,name,position,description,location,picture):
+
+        profiles.saveEdit(name,position,description,location,picture)
 
 #----------------------------------------------END---------------------------------------#
 
@@ -268,13 +153,13 @@ class MainApp(object):
         users.saveOnlineUsers()
         return users.showOnlineUsers()
 
-#----------------------------------------------END---------------------------------------#
+#-----------------------------------------END----------------------------------------------#
 
 
 
 
 
-#---------------------------------- COMMUNICATION(CLIENT-CLIENT) METHODS -----------------#
+#-------------------------- COMMUNICATION(CLIENT-CLIENT) METHODS --------------------------#
     
     #Method for sending message(calls other clients receive message)
     @cherrypy.expose
@@ -283,23 +168,12 @@ class MainApp(object):
         communication.sendMessage(message)
 
 
-    @cherrypy.tools.json_in()
-    def receiveData(self):
-        input_data=  cherrypy.request.json
-
 
     #Chat interface with a user
     @cherrypy.expose
     def chat(self,userUPI):
 
-        #Serve chat page html
-        workingDir = os.path.dirname(__file__)
-        filename = workingDir + "/html/newchat.html"
-        f = open(filename,"r")
-        page = f.read()
-        f.close()
-        cherrypy.session['chatTo'] = userUPI
-        return page
+        return communication.getChatPage(userUPI)
 
 
 
