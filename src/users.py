@@ -11,9 +11,9 @@ import sqlite3
 @cherrypy.expose
 def showOnlineUsers():
 
-    #Prepare database for storing online users
+    #Prepare database for storing users
     workingDir = os.path.dirname(__file__)
-    dbFilename = workingDir + "/db/online_users.db"
+    dbFilename = workingDir + "/db/userlist.db"
     f = open(dbFilename,"r")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
@@ -33,11 +33,19 @@ def showOnlineUsers():
 
         userUPI= users[i].split(',')[0]
 
-        page += userUPI
+        try:
+            username = cherrypy.session['username']
 
-        page += '<form action = "/viewProfile" method = "post">'
-        page += '<input type ="submit" value="View profile"/></form>'
+            if (userUPI != username):
 
+                page += '<p>' + userUPI + '</p>'
+                page += '<form action ="/viewProfile?userUPI=' + userUPI+'" method="post" enctype="multipart/form-data">'
+                page += '<input type ="submit" value="View Profile"/></form>'
+                page += '<form action ="/chat?userUPI=' + userUPI +'"method="post" enctype="multipart/form-data">'
+                page += '<input type ="submit" value="Send Message"/></form>'
+
+        except KeyError:
+            return 'Session expired'
 
     return page
 
@@ -57,7 +65,7 @@ def saveOnlineUsers():
         
     #Prepare database for storing online users
     workingDir = os.path.dirname(__file__)
-    dbFilename = workingDir + "/db/online_users.db"
+    dbFilename = workingDir + "/db/userlist.db"
     f = open(dbFilename,"r+")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
@@ -70,14 +78,14 @@ def saveOnlineUsers():
         userPORT = users[i].split(',')[3]
 
         #Search for existing user in database
-        cursor.execute("SELECT IP,PORT FROM OnlineUsers WHERE UPI = ?",[userUPI])
+        cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = ?",[userUPI])
         row = cursor.fetchall()
 
         #Insert new user information if new,update existing user information
         if (len(row) == 0):
-            cursor.execute("INSERT INTO OnlineUsers(UPI,IP,PORT) VALUES (?,?,?)",[userUPI,userIP,userPORT])
+            cursor.execute("INSERT INTO UserList(UPI,IP,PORT) VALUES (?,?,?)",[userUPI,userIP,userPORT])
         else:
-            cursor.execute("UPDATE OnlineUsers SET IP = ?,PORT = ? WHERE UPI = ?",[userIP,userPORT,userUPI])
+            cursor.execute("UPDATE UserList SET IP = ?,PORT = ? WHERE UPI = ?",[userIP,userPORT,userUPI])
 
     conn.commit()
     conn.close()

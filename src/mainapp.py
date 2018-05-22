@@ -34,15 +34,15 @@ class MainApp(object):
     _cp_config = {'tools.encode.on': True, 
                   'tools.encode.encoding': 'utf-8',
                   'tools.sessions.on' : 'True',
-                 }                 
+                 }             
 
     #Catch 404 error
     @cherrypy.expose
     def default(self, *args, **kwargs):
         """The default page, given when we don't recognise where the request is for."""
-        Page = "404 Error : Website not found"
+        page = "404 Error : Website not found are you sure bro"
         cherrypy.response.status = 404
-        return Page
+        return page
 
 
     #Index page
@@ -55,7 +55,6 @@ class MainApp(object):
         f = open(filename,"r")
         page = f.read()
         f.close()
-
         #Check user is logged in
         try:
             username = cherrypy.session['username']
@@ -186,15 +185,20 @@ class MainApp(object):
 
 
 
+
     #Compares user typed hashed password with server hashed password.
     @cherrypy.expose
     def authoriseUserLogin(self,username,password):
 
+        #Get user's ip address
+        hostIP = urllib2.urlopen('https://api.ipify.org').read()
+
         #Hash user's password
         hashedPW = hashlib.sha256(password+username).hexdigest()
+        string = "http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip="+hostIP+"&port="+str(listen_port)+"&location=2"
 
         #Call API to request a log in.
-        r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip=122.60.90.158&port="+str(listen_port)+"&location=2")
+        r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip="+hostIP+"&port="+str(listen_port)+"&location=2")
 
         #Check if login was successful
         response = r.read()
@@ -215,7 +219,7 @@ class MainApp(object):
 
 #----------------------------------- PROFILE METHODS -----------------------------------#
 
-    #Lets user edit their profile
+    #Lets user edit their own profile
     @cherrypy.expose
     def editProfile(self):
 
@@ -241,10 +245,13 @@ class MainApp(object):
         except KeyError:
             raise cherrypy.HTTPRedirect('/')
 
-    @cherrypy.expose
-    def viewProfile(self):
 
-        profiles.viewProfile()
+    #Shows profile of user(userUPI)
+    @cherrypy.expose
+    def viewProfile(self,userUPI):
+
+        return userUPI
+        profiles.viewProfile(userUPI)
 
 #----------------------------------------------END---------------------------------------#
 
@@ -271,26 +278,36 @@ class MainApp(object):
     
     #Method for sending message(calls other clients receive message)
     @cherrypy.expose
-    def sendMessage(self,receiver,ip,port,message):
-        try:
-            username = cherrypy.session['username']
-            r = urllib2.urlopen("http://"+ip+":"+port+"/receiveMessage?sender="+username+"&destination="+receiver+"&message="+str(message))
+    def sendMessage(self,message):
 
-        except KeyError:
+        communication.sendMessage(message)
 
-            return 'Didnt work'
 
-    
+    @cherrypy.tools.json_in()
+    def receiveData(self):
+        input_data=  cherrypy.request.json
+
+
+    #Chat interface with a user
     @cherrypy.expose
-    def send(self):
+    def chat(self,userUPI):
 
-        #Serve main page html
+        #Serve chat page html
         workingDir = os.path.dirname(__file__)
-        filename = workingDir + "/html/chat.html"
+        filename = workingDir + "/html/newchat.html"
         f = open(filename,"r")
         page = f.read()
         f.close()
+        cherrypy.session['chatTo'] = userUPI
         return page
+
+
+
+    #Public Ping API for checking if this client is online
+    @cherrypy.expose
+    def ping(self,sender):
+
+        return '0'
 
 
     #Public(Common) API for receiving message
@@ -310,8 +327,20 @@ class MainApp(object):
 
 @cherrypy.expose
 def runMainApp():
+
+    conf = {
+    '/':{
+        'tools.sessions.on' : True,
+        'tools.staticdir.root' : os.path.abspath(os.getcwd()) 
+        },
+        '/static':{
+            'tools.staticdir.on' : True,
+            
+        }
+    }
+
     # Create an instance of MainApp and tell Cherrypy to send all requests under / to it. (ie all of them)
-    cherrypy.tree.mount(MainApp(), "/")
+    cherrypy.tree.mount(MainApp(), '/',conf)
 
     # Tell Cherrypy to listen for connections on the configured address and port.
     cherrypy.config.update({'server.socket_host': listen_ip,'server.socket_port': listen_port,'engine.autoreload.on': True,})

@@ -93,7 +93,7 @@ def saveEdit(username,name,position,description,location,picture):
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
 
-    for i in range (0,5) :
+    for i in range (0,5):
         if (i == 0):
     	   cursor.execute("UPDATE Profile SET " + 'Name = \'' + name +  "\' WHERE username = '" + username + "'")
         elif (i == 1):
@@ -111,8 +111,10 @@ def saveEdit(username,name,position,description,location,picture):
     conn.close()
 
 @cherrypy.expose
-def viewProfile():
-    pass
+def viewProfile(userUPI):
+    
+   return userUPI
+
 
      
 
