@@ -30,7 +30,7 @@ def showUserPage():
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
-        cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile")
+        cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile where username = ?",[username])
 
         rows = cursor.fetchall()
                 
@@ -79,11 +79,16 @@ def editProfile():
         page = f.read()
 
         #Serve dynamic html content(show current user information, but let them replace with new information)           
-        page += '<p>Name: <input type="text" name="name" value ="' + str(row[0][0]) + '">'
-        page += '<p>Position: <input type="text" name="position" value ="' + str(row[0][1]) + '">'          
-        page += '<p>Description: <input type="text" name="description" value ="' + str(row[0][2]) + '">'
-        page += '<p>Location: <input type="text" name="location" value ="' + str(row[0][3]) + '">'          
-        page += '<p>Picture: <input type="text" name="picture" value ="' + str(row[0][4]) + '">'   
+        page += '<label for="username"><h3>Username</h3></label>'
+        page += '<input type="text" name="name" value ="' + str(row[0][0]) + '">'
+        page += '<label for="position"><h3>Position</h3></label>'
+        page += '<input type="text" name="position" value ="' + str(row[0][1]) + '">'   
+        page += '<label for="description"><h3>Description</h3></label>'       
+        page += '<input type="text" name="description" value ="' + str(row[0][2]) + '">'
+        page += '<label for="location"><h3>Location</h3></label>' 
+        page += '<input type="text" name="location" value ="' + str(row[0][3]) + '">'
+        page += '<label for="Picture"><h3>Picture</h3></label>'          
+        page += '<input type="text" name="picture" value ="' + str(row[0][4]) + '">'   
         page += '</br><button type="submit">Edit</button></form>'
         page += '</body>'
 
@@ -110,18 +115,8 @@ def saveEdit(name,position,description,location,picture):
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
-        for i in range (0,5):
-            if (i == 0):
-        	   cursor.execute("UPDATE Profile SET " + 'Name = \'' + name +  "\' WHERE username = '" + username + "'")
-            elif (i == 1):
-                cursor.execute("UPDATE Profile SET " + 'Position = \'' + position +  "\' WHERE username = '" + username + "'")
-            elif (i == 2):
-                cursor.execute("UPDATE Profile SET " + 'Description = \'' + description +  "\' WHERE username = '" + username + "'")
-            elif (i == 3):
-                cursor.execute("UPDATE Profile SET " + 'Location = \'' + location +  "\' WHERE username = '" + username + "'")
-            elif (i == 4):
-                cursor.execute("UPDATE Profile SET " + 'Picture = \'' + picture +  "\' WHERE username = '" + username + "'")
-
+        cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? WHERE username = ?",[name,position,description,location,username])
+        
         #Save database changes and return user to userpage
         conn.commit()
         conn.close()
@@ -133,10 +128,15 @@ def saveEdit(name,position,description,location,picture):
 
 @cherrypy.expose
 def viewProfile(userUPI):
-    
-   return userUPI
+
+    #call other node's getProfile
+    pass
+
+@cherrypy.expose
+def getProfile(profile_username,sender):
 
 
+    return data
      
 
     

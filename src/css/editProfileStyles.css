@@ -1,6 +1,7 @@
 body {
 	font-family: "Trebuchet MS", Helvetica, sans-serif;
     font-size: 18px;
+    color: #3090C7;
 }
 
 input[type=text] {
@@ -25,9 +26,15 @@ button:hover {
     opacity: 0.9;
 }
 
+
 p {
    color:#3090C7; 
 }
+
 h1 {
    color:#3090C7 
+}
+
+h2{
+    color:#3090C7;
 }

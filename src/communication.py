@@ -22,7 +22,7 @@ def receiveMessage(sender,destination,message,stamp = None,encoding = None,encry
     #Search for existing user messages in database
     cursor.execute("SELECT Messages from Received WHERE UPI = ?",[sender])
     row = cursor.fetchone()
-
+    print '@@@@@@@@@@@@@@@@@' + message
 
     if (len(row) == 0):
 
@@ -62,13 +62,14 @@ def sendMessage(message):
         port = str(row[0][1])
 
         #Ping destination to see if they are online
-        pingResponse = urllib2.urlopen("http://"+ip+":"+port+"/ping?sender="+username).read()
+        #pingResponse = urllib2.urlopen("http://"+ip+":"+port+"/ping?sender="+str(username)).read()
 
         #If destination was pinged successfully
-        if (pingResponse == '0'):
-            response = urllib2.urlopen("http://"+ip+":"+port+"/receiveMessage?sender="+username+"&destination="+destination+"&message="+str(message)).read()
-            if (response[0] == '0'):
-                return 'Message sent'
+        #if (pingResponse == '0'):
+            #print 'SameEEEEEEEEE'
+        response = urllib2.urlopen("http://"+ip+":"+port+"/receiveMessage?sender="+username+"&destination="+destination+"&message="+str(message)).read()
+        #if (response[0] == '0'):
+            #return 'Message sent'
 
         #Keep them on chat page
         raise cherrypy.HTTPRedirect('/chat?userUPI='+destination)

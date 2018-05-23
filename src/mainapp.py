@@ -134,6 +134,13 @@ class MainApp(object):
 
         profiles.saveEdit(name,position,description,location,picture)
 
+
+    #Public API for other users to get this node's profile
+    @cherrypy.expose
+    def getProfile(self,profile_username,sender):
+
+        return profiles.getProfile(profile_username,sender)
+
 #----------------------------------------------END---------------------------------------#
 
 
@@ -176,7 +183,7 @@ class MainApp(object):
     @cherrypy.expose
     def ping(self,sender):
 
-        return communication.ping()
+        return '0'
 
 
     #Public(Common) API for receiving message
