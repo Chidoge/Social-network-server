@@ -52,7 +52,7 @@ class MainApp(object):
 
         #Serve main page html
         workingDir = os.path.dirname(__file__)
-        filename = workingDir + "/html/login.html"
+        filename = workingDir + "./html/login.html"
         f = open(filename,"r")
         page = f.read()
         f.close()
@@ -130,7 +130,7 @@ class MainApp(object):
 
     #Helper function for editProfile(self)
     @cherrypy.expose
-    def saveEdit(self,name,position,description,location,picture):
+    def saveEdit(self,name=None,position=None,description=None,location=None,picture=None):
 
         profiles.saveEdit(name,position,description,location,picture)
 
@@ -164,7 +164,7 @@ class MainApp(object):
 
 #-------------------------- COMMUNICATION(CLIENT-CLIENT) METHODS --------------------------#
     
-    #Method for sending message(calls other clients receive message)
+    #Method for sending message(calls other clients /receiveMessage)
     @cherrypy.expose
     def sendMessage(self,message):
 
@@ -188,9 +188,9 @@ class MainApp(object):
 
     #Public(Common) API for receiving message
     @cherrypy.expose
-    def receiveMessage(self,sender,destination,message,encoding = None,encryption = None,hashing = None,hash = None,decryptionKey = None,groupID = None):
+    def receiveMessage(self,sender,destination,message,stamp=None,encoding = None,encryption = None,hashing = None,hash = None,decryptionKey = None,groupID = None):
 
-        return communication.receiveMessage(sender,destination,message,encoding,encryption,hashing,hash,decryptionKey,groupID)
+        return communication.receiveMessage(sender,destination,message,stamp,encoding,encryption,hashing,hash,decryptionKey,groupID)
 
 
 #-------------------------------------------END--------------------------------------------#
@@ -204,14 +204,24 @@ class MainApp(object):
 @cherrypy.expose
 def runMainApp():
 
-    conf = {
+    if (len(os.path.dirname(__file__)) != 0 ):
+        conf = {
 
-        '/static' : {
-            'tools.staticdir.on'  : True,
-            'tools.staticdir.dir' : os.path.dirname(__file__)
-            
+            '/static' : {
+                'tools.staticdir.on'  : True,
+                'tools.staticdir.dir' : os.path.dirname(__file__)
+                
+            }
         }
-    }
+    else :
+        conf = {
+
+            '/static' : {
+                'tools.staticdir.on'  : True,
+                'tools.staticdir.dir' : os.getcwd()
+            }
+        }
+
 
     # Create an instance of MainApp and tell Cherrypy to send all requests under / to it. (ie all of them)
     cherrypy.tree.mount(MainApp(), '/',conf)

@@ -1,11 +1,41 @@
-<!D0CTYPE html>
-<html>
 
+<!D0CTYPE html>
+<html>	
 	<head>
 		<title>User-Page</title>
 		<link href="/static/css/userpageStyles.css" rel="stylesheet" type = "text/css">
 	</head>
 
 	<body>
+		<div id="editProfile" class="modal">
+  
+  				<form class="modal-content animate" action="/saveEdit?name=name&position=position">
+
+				    <div class="container">
+				    	<h1>Edit My Profile</h1>
+				    	<label for="Name"><b>Name</b></label>
+				    	<input type="text" placeholder="Enter Name" name="name">
+
+				    	<label for="Position"><b>Position</b></label>
+				    	<input type="text" placeholder="Enter Position" name="position">
+				       
+				     	<button type="submit">Save</button>
+				     	<button type="button" onclick="document.getElementById('editProfile').style.display='none'" >Cancel</button>
+				    </div>
+				  </form>
+			</div>
+
+
+
 		<h1>My Profile</h1><br/>
+
+		<form action = "/showOnlineUsers" method = "post">
+		<button type="submit" >See who's online</button></form>
+		<button onclick="document.getElementById('editProfile').style.display='block'">Edit Profile</button></br>
+		<form action = "/signout" method = "post">
+		<button type="submit">Sign out</button></form>
+
+
+		</body>
+
 </html>

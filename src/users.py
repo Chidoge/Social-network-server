@@ -15,7 +15,7 @@ def showOnlineUsers():
         username = cherrypy.session['username']
         #Prepare database for storing users
         workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/userlist.db"
+        dbFilename = workingDir + "./db/userlist.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
@@ -66,7 +66,7 @@ def saveOnlineUsers():
             
         #Prepare database for storing online users
         workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/userlist.db"
+        dbFilename = workingDir + "./db/userlist.db"
         f = open(dbFilename,"r+")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()

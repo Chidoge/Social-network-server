@@ -20,13 +20,13 @@ def showUserPage():
         workingDir = os.path.dirname(__file__)
                 
         #Serve html to page
-        filename = workingDir + "/html/userpage.html"
+        filename = workingDir + "./html/userpage.html"
         f = open(filename,"r")
         page = f.read()
         f.close()
 
         #Read database
-        dbFilename = workingDir + "/db/profiles.db"
+        dbFilename = workingDir + "./db/profiles.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
@@ -49,9 +49,6 @@ def showUserPage():
                 elif (col == 4) :
                     page += ('Picture : ' +str(row[col]) + '</br>')
 
-        filename = workingDir + "/html/userpageButtons.html"
-        f = open(filename,"r")
-        page += f.read()
 
 
         return page 
@@ -71,14 +68,14 @@ def editProfile():
         workingDir = os.path.dirname(__file__)
 
         #Read database
-        dbFilename = workingDir + "/db/profiles.db"
+        dbFilename = workingDir + "./db/profiles.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
         cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile WHERE username = ?" ,[username])
 
         row = cursor.fetchall()
-        filename = workingDir + "/html/editprofile.html"
+        filename = workingDir + "./html/editprofile.html"
         f = open(filename,"r")
         page = f.read()
 
@@ -104,7 +101,7 @@ def editProfile():
 
 
 @cherrypy.expose
-def saveEdit(name,position,description,location,picture):
+def saveEdit(name=None,position=None,description=None,location=None,picture=None):
     
     #Check if user is logged in
     try:
@@ -114,7 +111,7 @@ def saveEdit(name,position,description,location,picture):
         workingDir = os.path.dirname(__file__)
         
         #Read database
-        dbFilename = workingDir + "/db/profiles.db"
+        dbFilename = workingDir + "./db/profiles.db"
         f = open(dbFilename,"r+")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()

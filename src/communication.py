@@ -5,6 +5,7 @@ import mimetypes
 import os
 import urllib2
 import sqlite3
+import time
 
 
 #This API allows other clients to send this client a message
@@ -25,9 +26,9 @@ def receiveMessage(sender,destination,message,stamp = None,encoding = None,encry
 
     if (len(row) == 0):
 
-        cursor.execute("INSERT INTO Received(UPI,Messages) VALUES (?,?)",[sender,message])
+        cursor.execute("INSERT INTO Received(UPI,Messages) VALUES (?,?)",[sender,message + ' Time: ' + stamp])
     else:
-        message = str(row[0]) + '\n' + message
+        message = str(row[0]) + '\n' + message + ' Time: ' + stamp
         cursor.execute("UPDATE Received SET Messages = ? WHERE UPI = ?",[message,sender])
 
     conn.commit()
@@ -49,7 +50,7 @@ def sendMessage(message):
 
         #Open database
         workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/userlist.db"
+        dbFilename = workingDir + "./db/userlist.db"
         f = open(dbFilename,"r+")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
@@ -61,17 +62,16 @@ def sendMessage(message):
         port = str(row[0][1])
 
         #Ping destination to see if they are online
-        #pingResponse = urllib2.urlopen("http://"+ip+":"+port+"/ping?sender="+str(username)).read()
+        pingResponse = urllib2.urlopen("http://"+ip+":"+port+"/ping?sender="+str(username)).read()
 
         #If destination was pinged successfully
-        #if (pingResponse == '0'):
-            #print 'SameEEEEEEEEE'
-        response = urllib2.urlopen("http://"+localhost+":"+port+"/receiveMessage?sender="+username+"&destination="+destination+"&message="+str(message)).read()
-        #if (response[0] == '0'):
-            #return 'Message sent'
-
-        #Keep them on chat page
-        raise cherrypy.HTTPRedirect('/chat?userUPI='+destination)
+        if (pingResponse == '0'):
+            stamp = str(time.time())
+            response = urllib2.urlopen("http://"+ip+":"+port+"/receiveMessage?sender="+username+"&destination="+destination+"&message="+str(message)+"&stamp="+stamp).read()
+            if (response[0] == '0'):
+                #Keep them on chat page
+                saveMessage(message,destination)
+                raise cherrypy.HTTPRedirect('/chat?userUPI='+destination)
 
     except KeyError:
 
@@ -83,7 +83,7 @@ def getChatPage(userUPI):
 
     #Serve chat page html
     workingDir = os.path.dirname(__file__)
-    filename = workingDir + "/html/chat.html"
+    filename = workingDir + "./html/chat.html"
     f = open(filename,"r")
     page = f.read()
     f.close()
@@ -97,6 +97,30 @@ def ping(sender):
 
     return '0'
 
+@cherrypy.expose
+def saveMessage(message,destination):
+
+    #Open database
+    workingDir = os.path.dirname(__file__)
+    dbFilename = workingDir + "./db/messages.db"
+    f = open(dbFilename,"r+")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT Messages FROM Sent WHERE UPI = ?",[destination])
+
+    row = cursor.fetchone()
+
+    stamp = str(time.time())
+    message = message + ' Time : ' + stamp
+
+    if (len(row) == 0):
+        cursor.execute("INSERT INTO Sent(UPI,Messages) VALUES (?,?)",[destination,message + '\n'])
+    else:
+        cursor.execute("UPDATE Sent SET Messages = ? WHERE UPI = ?",[str(row[0]) + message +'\n',destination])
+
+    conn.commit()
+    conn.close()
 
 @cherrypy.expose
 def getPublicKey():
