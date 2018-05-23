@@ -4,23 +4,27 @@
 		<title>CS302 Login Page</title>
 	</head>
 
-  	<body>
-	<form action="/signin">
-		<h1><center><strong>CS302 Web Server</strong><center></h1>
-	    <div class="container">
-	      <label for="username"><b>Username</b></label>
-	      <input type="text" placeholder="Username" name="username" required>
+	<body>
 
-	      <label for="password"><b>Password</b></label>
-	      <input type="password" placeholder="Password" name="password" required>
+		<form class="modal-content animate" action="/signin">
+			<h1>CS302 Web Server</h1>
+	    	<div class="imgcontainer">
+	      		<img src="/static/html/anon.png" alt="Avatar" class="avatar">
+	   		</div>
+				
+	    	<div class="container">
+
+	      		<label for="username"><b>Username</b></label>
+	      		<input type="text" placeholder="Enter Username" name="username" required>
+
+	      		<label for="password"><b>Password</b></label>
+	      		<input type="password" placeholder="Enter Password" name="password" required>
 	        
-	      <button type="submit">Login</button>
-	      <label>
-	      </label>
-	    </div>
+	      		<button type="submit">Login</button>
+	    	</div>
 
-	    <div class="container" style="background-color:#f1f1f1">
-	    </div>
-	</form>
+	  	</form>
+
 	</body>
+
 </html>

@@ -33,12 +33,12 @@ def showUserPage():
         cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile where username = ?",[username])
 
         rows = cursor.fetchall()
-                
+
+
         #Show info
         for row in rows:
             for col in range (0,4):
                 if (col == 0) :
-                    page += ('</br><b>Profile</b></br>')
                     page += ('Name : ' +str(row[col]) + '</br>')
                 elif (col == 1) :
                     page += ('Position : ' +str(row[col]) + '</br>')
@@ -48,6 +48,10 @@ def showUserPage():
                     page += ('Location : ' +str(row[col]) + '</br>')
                 elif (col == 4) :
                     page += ('Picture : ' +str(row[col]) + '</br>')
+
+        filename = workingDir + "/html/userpageButtons.html"
+        f = open(filename,"r")
+        page += f.read()
 
 
         return page 

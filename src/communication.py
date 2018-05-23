@@ -22,7 +22,6 @@ def receiveMessage(sender,destination,message,stamp = None,encoding = None,encry
     #Search for existing user messages in database
     cursor.execute("SELECT Messages from Received WHERE UPI = ?",[sender])
     row = cursor.fetchone()
-    print '@@@@@@@@@@@@@@@@@' + message
 
     if (len(row) == 0):
 
@@ -67,7 +66,7 @@ def sendMessage(message):
         #If destination was pinged successfully
         #if (pingResponse == '0'):
             #print 'SameEEEEEEEEE'
-        response = urllib2.urlopen("http://"+ip+":"+port+"/receiveMessage?sender="+username+"&destination="+destination+"&message="+str(message)).read()
+        response = urllib2.urlopen("http://"+localhost+":"+port+"/receiveMessage?sender="+username+"&destination="+destination+"&message="+str(message)).read()
         #if (response[0] == '0'):
             #return 'Message sent'
 
@@ -94,6 +93,11 @@ def getChatPage(userUPI):
 
 #Public Ping API for checking if this client is online
 @cherrypy.expose
-def ping(self,sender):
+def ping(sender):
 
     return '0'
+
+
+@cherrypy.expose
+def getPublicKey():
+    pass
