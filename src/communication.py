@@ -12,33 +12,44 @@ import time
 @cherrypy.expose
 def receiveMessage(data):
 
-    #Prepare database for storing message    
-    workingDir = os.path.dirname(__file__)
-    print 'WorkDir ' + workingDir
-    dbFilename = workingDir + "/db/messages.db"
-    f = open(dbFilename,"r+")
-    conn = sqlite3.connect(dbFilename)
-    cursor = conn.cursor()
 
-    sender = data['sender']
-    destination =  data['destination']
-    message = data['message']
-    stamp = data['stamp']
-    #Search for existing user messages in database
-    cursor.execute("SELECT Messages from Received WHERE UPI = ?",[sender])
-    row = cursor.fetchone()
+    try:
 
-    if (len(row) == 0):
+        sender = data['sender']
+        destination =  data['destination']
+        message = data['message']
+        stamp = data['stamp']
 
-        cursor.execute("INSERT INTO Received(UPI,Messages) VALUES (?,?)",[sender,message + ' Time: ' + stamp])
-    else:
-        message = str(row[0]) + '\n' + message + ' Time: ' + stamp
-        cursor.execute("UPDATE Received SET Messages = ? WHERE UPI = ?",[message,sender])
+        #Prepare database for storing message    
+        workingDir = os.path.dirname(__file__)
+        dbFilename = workingDir + "/db/messages.db"
+        f = open(dbFilename,"r+")
+        conn = sqlite3.connect(dbFilename)
+        cursor = conn.cursor()
 
-    conn.commit()
-    conn.close()
+        
 
-    return '0'
+        #Search for existing user messages in database
+        cursor.execute("SELECT Messages from Received WHERE UPI = ?",[sender])
+
+        row = cursor.fetchone()
+
+        if (row == None):
+
+            cursor.execute("INSERT INTO Received(UPI,Messages) VALUES (?,?)",[sender,message + ' Time: ' + stamp])
+        else:
+            message = str(row[0]) + '\n' + message + ' Time: ' + stamp
+            cursor.execute("UPDATE Received SET Messages = ? WHERE UPI = ?",[message,sender])
+
+        conn.commit()
+        conn.close()
+        return '0'
+        
+    except KeyError:
+
+        return '1';
+
+
 
 
 #Calls the destination's /receiveMessage API to send a message to them
@@ -70,22 +81,22 @@ def sendMessage(message):
 
         #If destination was pinged successfully
         if (pingResponse == '0'):
+
             stamp = str(time.time())
-	    url = "http://"+ip+":"+port+"/receiveMessage"
-	    output_dict = {
-				'sender' :username,
-				'message':message,
-				'stamp':stamp,
-				'destination':destination
-		}
-	    data = json.dumps(output_dict)
-	    req = urllib2.Request(url,data,{'Content-Type':'application/json'})
+            url = "http://"+ip+":"+port+"/receiveMessage"
+
+            output_dict = {'sender' :username,'message':message,'stamp':stamp,'destination':destination}  	
+            data = json.dumps(output_dict) 	
+            req = urllib2.Request(url,data,{'Content-Type':'application/json'})
+
             response = urllib2.urlopen(req).read()
 	    
             if (response[0] == '0'):
                 #Keep them on chat page
                 saveMessage(message,destination)
                 raise cherrypy.HTTPRedirect('/chat?userUPI='+destination)
+            else:
+                return 'Message not sent but ping response is 0'
 
     except KeyError:
 
@@ -97,11 +108,32 @@ def getChatPage(userUPI):
 
     #Serve chat page html
     workingDir = os.path.dirname(__file__)
-    filename = workingDir + "/html/chat.html"
+    filename = workingDir + "/html/chatbox.html"
     f = open(filename,"r")
     page = f.read()
     f.close()
     cherrypy.session['chatTo'] = userUPI
+
+    dbFilename = workingDir + "/db/messages.db"
+    f = open(dbFilename,"r")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT Messages FROM Received WHERE UPI = ?",[userUPI])
+
+    row = cursor.fetchall()
+
+    page += '<div class = "chat self">'
+    page += '<div class = "user-photo"></div>'
+    page += '<p class = "chat-message">' + str(row[0]) + '</p>'
+    page += '</div>'
+
+    filename = workingDir + "/html/chatbox-bottom.html"
+    f = open(filename,"r")
+    page += f.read()
+    f.close()
+
+
     return page
 
 
@@ -128,7 +160,7 @@ def saveMessage(message,destination):
     stamp = str(time.time())
     message = message + ' Time : ' + stamp
 
-    if (len(row) == 0):
+    if (row == None):
         cursor.execute("INSERT INTO Sent(UPI,Messages) VALUES (?,?)",[destination,message + '\n'])
     else:
         cursor.execute("UPDATE Sent SET Messages = ? WHERE UPI = ?",[str(row[0]) + message +'\n',destination])

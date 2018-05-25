@@ -7,7 +7,7 @@ import urllib2
 import sqlite3
 import socket
 
-listen_port = 10010
+listen_port = 15010
 
 
 
@@ -79,9 +79,10 @@ def authoriseUserLogin(username,password,location):
 
     #Get user's ip address
     hostIP = urllib2.urlopen('https://api.ipify.org').read()
+    #hostIP =socket.gethostbyname(socket.gethostname())
 
     #Hash user's password
-    hostIP =socket.gethostbyname(socket.gethostname())
+
     hashedPW = hashlib.sha256(password+username).hexdigest()
 
     #Call API to request a log in.
