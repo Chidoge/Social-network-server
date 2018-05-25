@@ -15,7 +15,7 @@ def showOnlineUsers():
         username = cherrypy.session['username']
         #Prepare database for storing users
         workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "./db/userlist.db"
+        dbFilename = workingDir + "/db/userlist.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
@@ -38,9 +38,9 @@ def showOnlineUsers():
             if (userUPI != username):
 
                 page += '<p>' + userUPI + '</p>'
-                page += '<form action ="/viewProfile?userUPI=' + userUPI+'" method="post" enctype="multipart/form-data">'
+                page += '<form action ="/viewProfile?userUPI=' + userUPI+'" method="post">'
                 page += '<input type ="submit" value="View Profile"/></form>'
-                page += '<form action ="/chat?userUPI=' + userUPI +'"method="post" enctype="multipart/form-data">'
+                page += '<form action ="/chat?userUPI=' + userUPI +'"method="post">'
                 page += '<input type ="submit" value="Send Message"/></form>'
 
     except KeyError:
@@ -66,7 +66,7 @@ def saveOnlineUsers():
             
         #Prepare database for storing online users
         workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "./db/userlist.db"
+        dbFilename = workingDir + "/db/userlist.db"
         f = open(dbFilename,"r+")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()

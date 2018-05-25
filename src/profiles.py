@@ -1,3 +1,4 @@
+#!/usr/bin/python
 """ This """
 import cherrypy
 import json
@@ -6,6 +7,8 @@ import mimetypes
 import os
 import urllib2
 import sqlite3
+import socket
+
 
 
 #Shows main page after login
@@ -20,13 +23,14 @@ def showUserPage():
         workingDir = os.path.dirname(__file__)
                 
         #Serve html to page
-        filename = workingDir + "./html/userpage.html"
+	print 'Workdir ' + workingDir
+        filename = workingDir + "/html/userpage.html"
         f = open(filename,"r")
         page = f.read()
         f.close()
 
         #Read database
-        dbFilename = workingDir + "./db/profiles.db"
+        dbFilename = workingDir + "/db/profiles.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
@@ -68,14 +72,14 @@ def editProfile():
         workingDir = os.path.dirname(__file__)
 
         #Read database
-        dbFilename = workingDir + "./db/profiles.db"
+        dbFilename = workingDir + "/db/profiles.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
         cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile WHERE username = ?" ,[username])
 
         row = cursor.fetchall()
-        filename = workingDir + "./html/editprofile.html"
+        filename = workingDir + "/html/editprofile.html"
         f = open(filename,"r")
         page = f.read()
 
@@ -111,7 +115,7 @@ def saveEdit(name=None,position=None,description=None,location=None,picture=None
         workingDir = os.path.dirname(__file__)
         
         #Read database
-        dbFilename = workingDir + "./db/profiles.db"
+        dbFilename = workingDir + "/db/profiles.db"
         f = open(dbFilename,"r+")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()

@@ -5,23 +5,24 @@ import mimetypes
 import os
 import urllib2
 import sqlite3
+import socket
 
-listen_port = 15010
+listen_port = 10010
 
 
 
 #LOGGING IN AND OUT
 @cherrypy.expose
-def signin(username=None, password=None):
+def signin(username=None, password=None,location=None):
 
     #If text field was empty
     if (username == None and password == None):
-        raise cherrypy.HTTPRedirect('/login')
+        raise cherrypy.HTTPRedirect('/')
     else:
         pass
 
     #Check their name and password and send them either to the main page, or back to the main login screen
-    errorCode = authoriseUserLogin(username,password)
+    errorCode = authoriseUserLogin(username,password,location)
 
     #Successful log in
     if (errorCode == 0):
@@ -38,12 +39,12 @@ def signin(username=None, password=None):
 
             else:
                 cherrypy.session['attempts'] = attempts + 1
-                raise cherrypy.HTTPRedirect('/login')
+                raise cherrypy.HTTPRedirect('/')
 
         #First attempt
         except KeyError:
             cherrypy.session['attempts'] = 1
-            raise cherrypy.HTTPRedirect('/login')
+            raise cherrypy.HTTPRedirect('/')
 
 #Log out API
 @cherrypy.expose
@@ -74,17 +75,17 @@ def signout():
 
 #Compares user typed hashed password with server hashed password.
 @cherrypy.expose
-def authoriseUserLogin(username,password):
+def authoriseUserLogin(username,password,location):
 
     #Get user's ip address
     hostIP = urllib2.urlopen('https://api.ipify.org').read()
 
     #Hash user's password
+    hostIP =socket.gethostbyname(socket.gethostname())
     hashedPW = hashlib.sha256(password+username).hexdigest()
-    string = "http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip="+hostIP+"&port="+str(listen_port)+"&location=2"
 
     #Call API to request a log in.
-    r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip="+hostIP+"&port="+str(listen_port)+"&location=2")
+    r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip="+hostIP+"&port="+str(listen_port)+"&location="+location)
 
     #Check if login was successful
     response = r.read()

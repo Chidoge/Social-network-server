@@ -11,7 +11,7 @@
 
 # The address we listen for connections on
 listen_ip = "0.0.0.0"
-listen_port = 15010
+listen_port = 10010
 
 import cherrypy
 import json
@@ -52,6 +52,7 @@ class MainApp(object):
 
         #Serve main page html
         workingDir = os.path.dirname(__file__)
+	print 'workdir ' + workingDir
         filename = workingDir + "./html/login.html"
         f = open(filename,"r")
         page = f.read()
@@ -76,10 +77,10 @@ class MainApp(object):
 
     #LOGGING IN AND OUT
     @cherrypy.expose
-    def signin(self, username=None, password=None):
+    def signin(self, username=None, password=None,location=None):
         print username
         print password
-        login.signin(username,password)
+        login.signin(username,password,location)
 
 
     #Log out API
@@ -188,10 +189,10 @@ class MainApp(object):
 
     #Public(Common) API for receiving message
     @cherrypy.expose
-    def receiveMessage(self,sender,destination,message,stamp=None,encoding = None,encryption = None,hashing = None,hash = None,decryptionKey = None,groupID = None):
-
-        return communication.receiveMessage(sender,destination,message,stamp,encoding,encryption,hashing,hash,decryptionKey,groupID)
-
+    @cherrypy.tools.json_in()
+    def receiveMessage(self):
+        data = cherrypy.request.json
+	return communication.receiveMessage(data)
 
 #-------------------------------------------END--------------------------------------------#
 

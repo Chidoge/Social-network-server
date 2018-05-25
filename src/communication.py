@@ -10,16 +10,20 @@ import time
 
 #This API allows other clients to send this client a message
 @cherrypy.expose
-def receiveMessage(sender,destination,message,stamp = None,encoding = None,encryption = None,hashing = None,hash = None,decryptionKey = None,groupID = None):
+def receiveMessage(data):
 
     #Prepare database for storing message    
     workingDir = os.path.dirname(__file__)
+    print 'WorkDir ' + workingDir
     dbFilename = workingDir + "/db/messages.db"
     f = open(dbFilename,"r+")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
 
-
+    sender = data['sender']
+    destination =  data['destination']
+    message = data['message']
+    stamp = data['stamp']
     #Search for existing user messages in database
     cursor.execute("SELECT Messages from Received WHERE UPI = ?",[sender])
     row = cursor.fetchone()
@@ -50,7 +54,7 @@ def sendMessage(message):
 
         #Open database
         workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "./db/userlist.db"
+        dbFilename = workingDir + "/db/userlist.db"
         f = open(dbFilename,"r+")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
@@ -67,7 +71,17 @@ def sendMessage(message):
         #If destination was pinged successfully
         if (pingResponse == '0'):
             stamp = str(time.time())
-            response = urllib2.urlopen("http://"+ip+":"+port+"/receiveMessage?sender="+username+"&destination="+destination+"&message="+str(message)+"&stamp="+stamp).read()
+	    url = "http://"+ip+":"+port+"/receiveMessage"
+	    output_dict = {
+				'sender' :username,
+				'message':message,
+				'stamp':stamp,
+				'destination':destination
+		}
+	    data = json.dumps(output_dict)
+	    req = urllib2.Request(url,data,{'Content-Type':'application/json'})
+            response = urllib2.urlopen(req).read()
+	    
             if (response[0] == '0'):
                 #Keep them on chat page
                 saveMessage(message,destination)
@@ -83,7 +97,7 @@ def getChatPage(userUPI):
 
     #Serve chat page html
     workingDir = os.path.dirname(__file__)
-    filename = workingDir + "./html/chat.html"
+    filename = workingDir + "/html/chat.html"
     f = open(filename,"r")
     page = f.read()
     f.close()
@@ -102,7 +116,7 @@ def saveMessage(message,destination):
 
     #Open database
     workingDir = os.path.dirname(__file__)
-    dbFilename = workingDir + "./db/messages.db"
+    dbFilename = workingDir + "/db/messages.db"
     f = open(dbFilename,"r+")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
