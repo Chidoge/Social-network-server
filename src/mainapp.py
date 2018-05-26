@@ -117,8 +117,7 @@ class MainApp(object):
     @cherrypy.expose
     def viewProfile(self,userUPI):
 
-        return userUPI
-        profiles.viewProfile(userUPI)
+        return profiles.viewProfile(userUPI)
 
 
     #Lets user edit their own profile(returns page for editing profile)
@@ -137,9 +136,10 @@ class MainApp(object):
 
     #Public API for other users to get this node's profile
     @cherrypy.expose
+    @cherrypy.tools.json_in()
     def getProfile(self,profile_username,sender):
-
-        return profiles.getProfile(profile_username,sender)
+        data = cherrypy.request.json
+        return profiles.getProfile(data)
 
 #----------------------------------------------END---------------------------------------#
 
@@ -166,9 +166,11 @@ class MainApp(object):
     
     #Method for sending message(calls other clients /receiveMessage)
     @cherrypy.expose
-    def sendMessage(self,message):
-
-        communication.sendMessage(message)
+    def sendMessage(self,message=None):
+        if (message != None):
+            communication.sendMessage(message)
+        else:
+            raise cherrypy.HTTPRedirect('/showUserPage')
 
 
 

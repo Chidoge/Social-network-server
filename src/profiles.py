@@ -23,7 +23,6 @@ def showUserPage():
         workingDir = os.path.dirname(__file__)
                 
         #Serve html to page
-	print 'Workdir ' + workingDir
         filename = workingDir + "/html/userpage.html"
         f = open(filename,"r")
         page = f.read()
@@ -38,20 +37,18 @@ def showUserPage():
 
         rows = cursor.fetchall()
 
+        name = rows[0][0]
+        position = rows[0][1]
+        description = rows[0][2]
+        location = rows[0][3]
+        picture = rows[0][4]
 
-        #Show info
-        for row in rows:
-            for col in range (0,4):
-                if (col == 0) :
-                    page += ('Name : ' +str(row[col]) + '</br>')
-                elif (col == 1) :
-                    page += ('Position : ' +str(row[col]) + '</br>')
-                elif (col == 2) :
-                    page += ('Description : ' +str(row[col]) + '</br>')
-                elif (col == 3) :
-                    page += ('Location : ' +str(row[col]) + '</br>')
-                elif (col == 4) :
-                    page += ('Picture : ' +str(row[col]) + '</br>')
+        page.replace("NAME_HERE",name)
+        page.replace('POSITION_HERE',position)
+        page.replace('DESCRIPTION_HERE',description)
+        page.replace('LOCATION_HERE',location)
+        page.replace('PICTURE_HERE',picture)
+
 
 
 
@@ -131,17 +128,74 @@ def saveEdit(name=None,position=None,description=None,location=None,picture=None
 
         raise cherrypy.HTTPRedirect('/')
 
+#Call other node's getProfile
 @cherrypy.expose
 def viewProfile(userUPI):
 
-    #call other node's getProfile
-    pass
+    #Check session
+    try:
+
+        username = cherrypy.session['username']
+        profile_username = userUPI
+        #Open database
+        workingDir = os.path.dirname(__file__)
+        dbFilename = workingDir + "/db/userlist.db"
+        f = open(dbFilename,"r+")
+        conn = sqlite3.connect(dbFilename)
+        cursor = conn.cursor()
+
+        #Find ip and port - Should always exist, since this method is only called when this user is saved.
+        cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = ?",[profile_username])
+        row = cursor.fetchall()
+        ip = str(row[0][0])
+        port = str(row[0][1])
+
+        #URL for requesting profile
+        url = "http://"+ip+":"+port+"/getProfile"
+
+        #Encode input arguments into json
+
+        output_dict = {'sender' :username,'profile_username':profile_username}
+        data = json.dumps(output_dict)  
+        req = urllib2.Request(url,data,{'Content-Type':'application/json'})
+
+        response = urllib2.urlopen(req).read()
+        
+        print response
+
+    except KeyError:
+
+        return 'Session Expired'
+
+
 
 @cherrypy.expose
-def getProfile(profile_username,sender):
+def getProfile(data):
 
+    profile_username = data['profile_username']
+    sender = data['sender']
 
-    return data
+    #Read database
+    dbFilename = workingDir + "/db/profiles.db"
+    f = open(dbFilename,"r+")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor() 
+
+    cursor.execute("SELECT Name,Position,Description,Location,Picture FROM Profile WHERE username = ?",[username])
+
+    row = cursor.fetchone()
+
+    if (len(row) != 0):
+
+        output_dict = {'Name' :row[0][0],'Position': row[0][1],'Description': row[0][2],'Location': row[0][3],'Picture': row[0][4]}
+        data = json.dumps(output_dict)  
+        return data
+
+    else:
+
+        return '4'
+
+    
      
 
     
