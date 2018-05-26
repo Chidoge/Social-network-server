@@ -71,7 +71,7 @@ def sendMessage(message):
 
             #Ping destination to see if they are online
             pingResponse = urllib2.urlopen("http://"+ip+":"+port+"/ping?sender="+str(username)).read()
-
+            same = True
             #If destination was pinged successfully
             if (pingResponse == '0'):
 
@@ -89,6 +89,7 @@ def sendMessage(message):
                     saveMessage(message,destination)
                     raise cherrypy.HTTPRedirect('/chat?userUPI='+destination)
                 else:
+                    print 'Code error : ' + response[0]
                     return 'Message not sent but ping response is 0'
 
     except KeyError:
@@ -99,37 +100,53 @@ def sendMessage(message):
 @cherrypy.expose
 def getChatPage(userUPI):
 
-    #Serve chat page html
-    workingDir = os.path.dirname(__file__)
-    filename = workingDir + "/html/chatbox.html"
-    f = open(filename,"r")
-    page = f.read()
-    f.close()
-    cherrypy.session['chatTo'] = userUPI
+    #Check session
+    try:
+        username = cherrypy.session['username']
+        #Serve chat page html
+        workingDir = os.path.dirname(__file__)
+        filename = workingDir + "/html/chatbox.html"
+        f = open(filename,"r")
+        page = f.read()
+        f.close()
+        cherrypy.session['chatTo'] = userUPI
 
-    dbFilename = workingDir + "/db/messages.db"
-    f = open(dbFilename,"r")
-    conn = sqlite3.connect(dbFilename)
-    cursor = conn.cursor()
+        dbFilename = workingDir + "/db/messages.db"
+        f = open(dbFilename,"r")
+        conn = sqlite3.connect(dbFilename)
+        cursor = conn.cursor()
 
-    cursor.execute("SELECT Messages FROM Received WHERE UPI = ?",[userUPI])
+        cursor.execute("SELECT Messages FROM Received WHERE UPI = ?",[userUPI])
 
-    rows = cursor.fetchall()
+        rows = cursor.fetchall()
 
-    for row in rows:
-        page += '<div class = "chat friend">'
-        page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
-        page += '<p class = "chat-message">' + str(row[0]) + '</p>'
-        page += '</div>'
+        for row in rows:
+            page += '<div class = "chat friend">'
+            page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
+            page += '<p class = "chat-message">' + str(row[0]) + '</p>'
+            page += '</div>'
+
+        cursor.execute("SELECT Messages FROM Sent WHERE UPI = ?",[userUPI])
+
+        rows = cursor.fetchall()
+
+        for row in rows:
+            page += '<div class = "chat self">'
+            page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
+            page += '<p class = "chat-message">' + str(row[0]) + '</p>'
+            page += '</div>'
+
+        filename = workingDir + "/html/chatbox-bottom.html"
+        f = open(filename,"r")
+        page += f.read()
+        f.close()
 
 
-    filename = workingDir + "/html/chatbox-bottom.html"
-    f = open(filename,"r")
-    page += f.read()
-    f.close()
+        return page
 
+    except KeyError:
 
-    return page
+        return 'Session expired'
 
 
 #Public Ping API for checking if this client is online
