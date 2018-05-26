@@ -1,4 +1,3 @@
-
 <!D0CTYPE html>
 <html>	
 	<head>
@@ -19,13 +18,13 @@
 				    	<label for="Position"><b>Position</b></label>
 				    	<input type="text" placeholder="Enter Position" name="position">
 
-				    	<label for="Description"><b>Position</b></label>
+				    	<label for="Description"><b>Description</b></label>
 				    	<input type="text" placeholder="Enter Description" name="description">
 
-				    	<label for="Location"><b>Position</b></label>
+				    	<label for="Location"><b>Location</b></label>
 				    	<input type="text" placeholder="Enter Location" name="location">
 
-				    	<label for="Picture"><b>Position</b></label>
+				    	<label for="Picture"><b>Picture</b></label>
 				    	<input type="text" placeholder="Enter Picture" name="picture">
 				       
 				     	<button type="submit">Save</button>
@@ -33,23 +32,27 @@
 				    </div>
 				  </form>
 			</div>
+		<div class = "sidebar">
+			<h1>Online Users</h1>
+		</div>
 
+		<div class = "topbuttons">
+			<table>
+				<th><h1>My Profile</h1></th>
+				<form action = "/showOnlineUsers" method = "post">
+				<button type="submit" >See who's online</button></form>
+				<button onclick="document.getElementById('editProfile').style.display='block'">Edit Profile</button>
+				<form action = "/signout" method = "post">
+				<button type="submit">Sign out</button></form>
+			</table>
+		</div>
 
-
-		<h1>My Profile</h1><br/>
-
-		<form action = "/showOnlineUsers" method = "post">
-		<button type="submit" >See who's online</button></form>
-		<button onclick="document.getElementById('editProfile').style.display='block'">Edit Profile</button></br>
-		<form action = "/signout" method = "post">
-		<button type="submit">Sign out</button></form>
 
 		<p>Name : NAME_HERE </p>
 		<p>Position : POSITION_HERE </p>
 		<p>Description : DESCRIPTION_HERE </p>
 		<p>Location : LOCATION_HERE </p>
 		<p>Picture : PICTURE_HERE </p>
-
 		</body>
 
 </html>

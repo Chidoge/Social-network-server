@@ -6,10 +6,18 @@ import os
 import urllib2
 import sqlite3
 import socket
+import thread
+import threading
+import time
 
 listen_port = 15010
 
 
+
+gUser = ""
+gPW = ""
+gIP = ""
+gloc = ""
 
 #LOGGING IN AND OUT
 @cherrypy.expose
@@ -79,6 +87,7 @@ def authoriseUserLogin(username,password,location):
 
     #Get user's ip address
     hostIP = urllib2.urlopen('https://api.ipify.org').read()
+    
     #hostIP =socket.gethostbyname(socket.gethostname())
 
     #Hash user's password
@@ -94,6 +103,38 @@ def authoriseUserLogin(username,password,location):
     if (response[0] == '0'):
         cherrypy.session['username'] = username
         cherrypy.session['password'] = hashedPW
+        cherrypy.session['location'] = location
+        cherrypy.session['ip'] = hostIP
+
+        global gUser,gPW,gIP,gloc
+
+        gUser = username
+        gPW = hashedPW
+        gIP = hostIP
+        gloc = location
+
+        startThread(gUser,gPW,gIP,gloc)
+
         return 0
     else :
         return 1
+
+
+
+
+
+def startThread(username,hashedPW,hostIP,location):
+
+    threading.Timer(3, reportToServer).start()
+
+   
+
+def reportToServer():
+
+    global gUser,gPW,gIP,gloc
+    threading.Timer(3, reportToServer).start()
+    hostIP = urllib2.urlopen('https://api.ipify.org').read()
+
+    r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + gUser + "&password=" + gPW + "&ip="+gIP+"&port="+str(listen_port)+"&location="+gloc).read()
+    print r
+

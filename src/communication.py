@@ -71,7 +71,7 @@ def sendMessage(message):
 
             #Ping destination to see if they are online
             pingResponse = urllib2.urlopen("http://"+ip+":"+port+"/ping?sender="+str(username)).read()
-            same = True
+
             #If destination was pinged successfully
             if (pingResponse == '0'):
 

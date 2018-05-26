@@ -8,7 +8,7 @@ import os
 import urllib2
 import sqlite3
 import socket
-
+import users
 
 
 #Shows main page after login
@@ -43,11 +43,14 @@ def showUserPage():
         location = rows[0][3]
         picture = rows[0][4]
 
-        page.replace("NAME_HERE",name)
-        page.replace('POSITION_HERE',position)
-        page.replace('DESCRIPTION_HERE',description)
-        page.replace('LOCATION_HERE',location)
-        page.replace('PICTURE_HERE',picture)
+        #onlineUsers = users.getOnlineUsers()
+
+
+        page = page.replace("NAME_HERE",name)
+        page = page.replace('POSITION_HERE',position)
+        page = page.replace('DESCRIPTION_HERE',description)
+        page = page.replace('LOCATION_HERE',location)
+        page = page.replace('PICTURE_HERE',picture)
 
 
 
@@ -127,6 +130,7 @@ def saveEdit(name=None,position=None,description=None,location=None,picture=None
     except KeyError:
 
         raise cherrypy.HTTPRedirect('/')
+
 
 #Call other node's getProfile
 @cherrypy.expose

@@ -77,8 +77,7 @@ class MainApp(object):
     #LOGGING IN AND OUT
     @cherrypy.expose
     def signin(self, username=None, password=None,location=None):
-        print username
-        print password
+
         login.signin(username,password,location)
 
 
