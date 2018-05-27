@@ -31,7 +31,7 @@ def showUserPage():
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
-        cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile where username = ?",[username])
+        cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile where UPI = ?",[username])
 
         rows = cursor.fetchall()
 
@@ -102,7 +102,7 @@ def saveEdit(name=None,position=None,description=None,location=None,picture=None
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,Picture = ? WHERE username = ?",[name,position,description,location,picture,username])
+        cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,Picture = ? WHERE UPI = ?",[name,position,description,location,picture,username])
         
         #Save database changes and return user to userpage
         conn.commit()
@@ -123,6 +123,7 @@ def viewProfile(userUPI):
 
         username = cherrypy.session['username']
         profile_username = userUPI
+
         #Open database
         workingDir = os.path.dirname(__file__)
         dbFilename = workingDir + "/db/userlist.db"
@@ -146,8 +147,41 @@ def viewProfile(userUPI):
 
 
         try :
-            response = urllib2.urlopen(req,timeout= 5).read()
+
+            data = urllib2.urlopen(req,timeout= 5).read()
+
+            loaded = json.loads(data)
+
+            name = loaded['fullname']
+            position = loaded['position'] 
+            description = loaded['description']
+            location = loaded['location']
+            #picture = loaded['picture']
+
+            #Open database
+            workingDir = os.path.dirname(__file__)
+            dbFilename = workingDir + "/db/profiles.db"
+            f = open(dbFilename,"r+")
+            conn = sqlite3.connect(dbFilename)
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT Name FROM Profile WHERE UPI = ?",[profile_username])
+
+            row = cursor.fetchall()
+
+            #Insert new user information if new,update existing user information
+            if (len(row) == 0):
+                cursor.execute("INSERT INTO Profile(Name,Position,Description,Location) VALUES (?,?,?,?)",[name,position,description,location])
+            else:
+                cursor.execute("UPDATE Profile SET Name = ?,Position = ?,Description = ?,Location = ?  WHERE UPI = ?",[name,position,description,location,profile_username])
+
+            conn.commit()
+            conn.close()
+            
+            return data
+
         except urllib2.URLError, exception:
+
             return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
 
         
@@ -172,13 +206,13 @@ def getProfile(data):
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor() 
 
-    cursor.execute("SELECT Name,Position,Description,Location,Picture FROM Profile WHERE username = ?",[profile_username])
+    cursor.execute("SELECT Name,Position,Description,Location,Picture FROM Profile WHERE UPI = ?",[profile_username])
 
     row = cursor.fetchone()
 
     if (len(row) != 0):
 
-        output_dict = {'Name' :row[0],'Position': row[1],'Description': row[2],'Location': row[3],'Picture': row[4]}
+        output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': row[4]}
         data = json.dumps(output_dict)
         print data
         return data

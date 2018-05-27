@@ -29,6 +29,7 @@ def receiveMessage(data):
         cursor = conn.cursor()
 
         
+        
         cursor.execute("INSERT INTO Received(UPI,Messages,Stamp) VALUES (?,?,?)",[sender,message,stamp])
 
         conn.commit()
