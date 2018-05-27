@@ -146,8 +146,10 @@ def viewProfile(userUPI):
         output_dict = {'sender' :username,'profile_username':profile_username}
         data = json.dumps(output_dict)  
         req = urllib2.Request(url,data,{'Content-Type':'application/json'})
-
-        response = urllib2.urlopen(req).read()
+        try :
+            response = urllib2.urlopen(req,timeout= 3).read()
+        except urllib2.URLError:
+            raise cherrypy.HTTPRedirect('/chat?userUPI=dche192')
         
         print response
 
