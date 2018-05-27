@@ -108,7 +108,8 @@ class MainApp(object):
     #Profile page
     @cherrypy.expose
     def showUserPage(self):
-   
+
+        users.saveOnlineUsers()
         return profiles.showUserPage()
 
         
@@ -119,14 +120,7 @@ class MainApp(object):
         return profiles.viewProfile(userUPI)
 
 
-    #Lets user edit their own profile(returns page for editing profile)
-    @cherrypy.expose
-    def editProfile(self):
-
-        return profiles.editProfile()
-
-
-    #Helper function for editProfile(self)
+    #Saves user changes to their profile
     @cherrypy.expose
     def saveEdit(self,name=None,position=None,description=None,location=None,picture=None):
 
@@ -136,7 +130,8 @@ class MainApp(object):
     #Public API for other users to get this node's profile
     @cherrypy.expose
     @cherrypy.tools.json_in()
-    def getProfile(self,profile_username,sender):
+    def getProfile(self):
+
         data = cherrypy.request.json
         return profiles.getProfile(data)
 
@@ -148,12 +143,8 @@ class MainApp(object):
 
 #-----------------------------------OTHER CLIENT METHODS---------------------------------#
     
-    #Returns the page that shows everyone who's online
-    @cherrypy.expose
-    def showOnlineUsers(self):
 
-        users.saveOnlineUsers()
-        return users.showOnlineUsers()
+#Nothing here at the moment
 
 #-----------------------------------------END----------------------------------------------#
 

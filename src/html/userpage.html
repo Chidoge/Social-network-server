@@ -30,29 +30,19 @@
 				     	<button type="submit">Save</button>
 				     	<button type="button" onclick="document.getElementById('editProfile').style.display='none'" >Cancel</button>
 				    </div>
-				  </form>
+				</form>
 			</div>
-		<div class = "sidebar">
-			<h1>Online Users</h1>
-		</div>
 
+			
 		<div class = "topbuttons">
 			<table>
 				<th><h1>My Profile</h1></th>
-				<form action = "/showOnlineUsers" method = "post">
-				<button type="submit" >See who's online</button></form>
 				<button onclick="document.getElementById('editProfile').style.display='block'">Edit Profile</button>
 				<form action = "/signout" method = "post">
 				<button type="submit">Sign out</button></form>
 			</table>
 		</div>
 
-
-		<p>Name : NAME_HERE </p>
-		<p>Position : POSITION_HERE </p>
-		<p>Description : DESCRIPTION_HERE </p>
-		<p>Location : LOCATION_HERE </p>
-		<p>Picture : PICTURE_HERE </p>
-		</body>
-
-</html>
+		<div class = "sidebar">
+			<h1>Online Users</h1>
+		

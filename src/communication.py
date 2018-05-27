@@ -79,7 +79,8 @@ def sendMessage(message):
                 url = "http://"+ip+":"+port+"/receiveMessage"
 
                 output_dict = {'sender' :username,'message':message,'stamp':stamp,'destination':destination}  	
-                data = json.dumps(output_dict) 	
+                data = json.dumps(output_dict) 
+
                 req = urllib2.Request(url,data,{'Content-Type':'application/json'})
 
                 response = urllib2.urlopen(req).read()

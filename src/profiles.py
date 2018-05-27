@@ -43,8 +43,34 @@ def showUserPage():
         location = rows[0][3]
         picture = rows[0][4]
 
-        #onlineUsers = users.getOnlineUsers()
 
+        #Call API to check for other online users
+        r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'])
+        response = r.read()
+
+        #Split API response using white space as tokeniser
+        users = response.split()
+
+
+        #User list starts after 4th white space
+        for i in range(5,len(users)) :
+
+            userUPI= users[i].split(',')[0]
+
+            #No need to show current user their own profile
+            if (userUPI != username):
+                page += '<p>' + userUPI + '</p>'
+                page += '<form action ="/viewProfile?userUPI=' + userUPI+'" method="post">'
+                page += '<button type ="submit">View Profile</button></form>'
+                page += '<form action ="/chat?userUPI=' + userUPI +'"method="post">'
+                page += '<button type ="submit">Send Message</button></form>'
+
+
+
+        filename = workingDir + "/html/userpage-bottom.html"
+        f = open(filename,"r")
+        page += f.read()
+        f.close
 
         page = page.replace("NAME_HERE",name)
         page = page.replace('POSITION_HERE',position)
@@ -60,47 +86,6 @@ def showUserPage():
     except KeyError:
 
         raise cherrypy.HTTPRedirect('/')   
-
-#Brings user to profile edit page
-@cherrypy.expose
-def editProfile():
-
-    #Check if user is logged in
-    try:
-        username = cherrypy.session['username']    
-        #Get working directory to find html and database file
-        workingDir = os.path.dirname(__file__)
-
-        #Read database
-        dbFilename = workingDir + "/db/profiles.db"
-        f = open(dbFilename,"r")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
-        cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile WHERE username = ?" ,[username])
-
-        row = cursor.fetchall()
-        filename = workingDir + "/html/editprofile.html"
-        f = open(filename,"r")
-        page = f.read()
-
-        #Serve dynamic html content(show current user information, but let them replace with new information)           
-        page += '<label for="username"><h3>Username</h3></label>'
-        page += '<input type="text" name="name" value ="' + str(row[0][0]) + '">'
-        page += '<label for="position"><h3>Position</h3></label>'
-        page += '<input type="text" name="position" value ="' + str(row[0][1]) + '">'   
-        page += '<label for="description"><h3>Description</h3></label>'       
-        page += '<input type="text" name="description" value ="' + str(row[0][2]) + '">'
-        page += '<label for="location"><h3>Location</h3></label>' 
-        page += '<input type="text" name="location" value ="' + str(row[0][3]) + '">'
-        page += '<label for="Picture"><h3>Picture</h3></label>'          
-        page += '<input type="text" name="picture" value ="' + str(row[0][4]) + '">'   
-        page += '</br><button type="submit">Edit</button></form>'
-        page += '</body>'
-
-        return page
-
-    except KeyError:
-        raise cherrypy.HTTPRedirect('/')
 
 
 
@@ -158,7 +143,6 @@ def viewProfile(userUPI):
         url = "http://"+ip+":"+port+"/getProfile"
 
         #Encode input arguments into json
-
         output_dict = {'sender' :username,'profile_username':profile_username}
         data = json.dumps(output_dict)  
         req = urllib2.Request(url,data,{'Content-Type':'application/json'})
@@ -179,20 +163,22 @@ def getProfile(data):
     profile_username = data['profile_username']
     sender = data['sender']
 
+    workingDir = os.path.dirname(__file__) 
     #Read database
     dbFilename = workingDir + "/db/profiles.db"
     f = open(dbFilename,"r+")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor() 
 
-    cursor.execute("SELECT Name,Position,Description,Location,Picture FROM Profile WHERE username = ?",[username])
+    cursor.execute("SELECT Name,Position,Description,Location,Picture FROM Profile WHERE username = ?",[profile_username])
 
     row = cursor.fetchone()
 
     if (len(row) != 0):
 
-        output_dict = {'Name' :row[0][0],'Position': row[0][1],'Description': row[0][2],'Location': row[0][3],'Picture': row[0][4]}
-        data = json.dumps(output_dict)  
+        output_dict = {'Name' :row[0],'Position': row[1],'Description': row[2],'Location': row[3],'Picture': row[4]}
+        data = json.dumps(output_dict)
+        print data
         return data
 
     else:

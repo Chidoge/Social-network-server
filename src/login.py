@@ -63,12 +63,13 @@ def signout():
         username = cherrypy.session['username']
         hashedPW = cherrypy.session['password']
 
+        threading.Thread.daemon = True
         #Call API to log off
         r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + username + "&password=" + hashedPW + "&enc=0")
         response = r.read()
 
         #Successful log off
-        if (response[0] == "0"):
+        if (response[0] == '0'):
             cherrypy.lib.sessions.expire()
             raise cherrypy.HTTPRedirect('/')
 
@@ -87,11 +88,10 @@ def authoriseUserLogin(username,password,location):
 
     #Get user's ip address
     hostIP = urllib2.urlopen('https://api.ipify.org').read()
-    
+    """For internal ip address"""
     #hostIP =socket.gethostbyname(socket.gethostname())
 
     #Hash user's password
-
     hashedPW = hashlib.sha256(password+username).hexdigest()
 
     #Call API to request a log in.
@@ -99,12 +99,12 @@ def authoriseUserLogin(username,password,location):
 
     #Check if login was successful
     response = r.read()
+
     #If error code is 0, save the user, and return 0 to indicate successful login.
     if (response[0] == '0'):
+
         cherrypy.session['username'] = username
         cherrypy.session['password'] = hashedPW
-        cherrypy.session['location'] = location
-        cherrypy.session['ip'] = hostIP
 
         global gUser,gPW,gIP,gloc
 
@@ -112,8 +112,8 @@ def authoriseUserLogin(username,password,location):
         gPW = hashedPW
         gIP = hostIP
         gloc = location
-
-        startThread(gUser,gPW,gIP,gloc)
+        
+        startThread()
 
         return 0
     else :
@@ -123,18 +123,21 @@ def authoriseUserLogin(username,password,location):
 
 
 
-def startThread(username,hashedPW,hostIP,location):
+def startThread():
 
-    threading.Timer(3, reportToServer).start()
+    threading.Timer(270,reportToServer).start()
 
    
 
 def reportToServer():
 
-    global gUser,gPW,gIP,gloc
-    threading.Timer(3, reportToServer).start()
+
+    threading.Timer(270, reportToServer).start()
+
     hostIP = urllib2.urlopen('https://api.ipify.org').read()
 
     r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + gUser + "&password=" + gPW + "&ip="+gIP+"&port="+str(listen_port)+"&location="+gloc).read()
+
     print r
+    
 

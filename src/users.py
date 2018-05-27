@@ -7,50 +7,6 @@ import urllib2
 import sqlite3
 
 
-#Shows online users
-@cherrypy.expose
-def showOnlineUsers():
-
-    try:
-        username = cherrypy.session['username']
-        #Prepare database for storing users
-        workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/userlist.db"
-        f = open(dbFilename,"r")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
-
-        #Call API to check for other online users
-        r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'])
-        response = r.read()
-
-        #Split API response using white space as tokeniser
-        users = response.split()
-
-        #Start building html for showing online users
-        page = '<h1>Online Users</h1>'
-
-        #User list starts after 4th white space
-        for i in range(5,len(users)) :
-
-            userUPI= users[i].split(',')[0]
-
-            if (userUPI != username):
-
-                page += '<p>' + userUPI + '</p>'
-                page += '<form action ="/viewProfile?userUPI=' + userUPI+'" method="post">'
-                page += '<input type ="submit" value="View Profile"/></form>'
-                page += '<form action ="/chat?userUPI=' + userUPI +'"method="post">'
-                page += '<input type ="submit" value="Send Message"/></form>'
-
-    except KeyError:
-
-        return 'Session expired'
-
-    return page
-
-
-
 @cherrypy.expose
 def saveOnlineUsers():
 

@@ -31,8 +31,16 @@ button:hover {
 
 .sidebar {
 
+    width : 300px;
+    height : 100%;
     float : right;
-    margin-right : 30px;
+    position : sticky;
+    margin-top : 0px;
+}
+
+.sidebar button {
+    position : sticky;
+    float : right;
 
 }
 
