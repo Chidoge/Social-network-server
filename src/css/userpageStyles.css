@@ -2,6 +2,7 @@ body {
     font-family: "Trebuchet MS", Helvetica, sans-serif;
     font-size: 18px;
     color: #3090C7;
+    margin-top: 0px;
 }
 
 input[type=text]{
@@ -15,24 +16,34 @@ input[type=text]{
 
 
 button {
+
     background-color: #3090C7;
     color: white;
     padding: 14px 20px;
-    margin: 8px 0;
+    margin-top: 1%;
     border: none;
     cursor: pointer;
     width: 300px;
 }
 
 button:hover {
+
     opacity: 0.9;
 }
 
 .users {
-    float : right;
 
-    
+    width : 300px;
+    float : right;
+    text-align:center;
+    margin-right : 0px;
+    margin-top : 1%;
+    background : #3090C7;
+    color : white;
+
 }
+
+
 .sidebar {
 
     width : 300px;
@@ -43,14 +54,23 @@ button:hover {
     overflow-x : hidden;
 }
 
+
 .sidebar button {
+
     position : sticky;
-    float : top;
+    float : left;
+    text-align : center;
+    margin-left: 20px;
+    padding : 0px;
+    width : 40%;
+    height : 50px;
+    max-height : 50px;
 
 }
 
-.topbuttons {
-    margin-top : 30px;
+.topbuttons button {
+    position :sticky;
+    top : 0px;
 }
 
 

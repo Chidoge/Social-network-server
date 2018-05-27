@@ -125,14 +125,14 @@ def authoriseUserLogin(username,password,location):
 
 def startThread():
 
-    threading.Timer(270,reportToServer).start()
+    threading.Timer(40,reportToServer).start()
 
    
 
 def reportToServer():
 
 
-    threading.Timer(270, reportToServer).start()
+    threading.Timer(40, reportToServer).start()
 
     hostIP = urllib2.urlopen('https://api.ipify.org').read()
 

@@ -1,5 +1,3 @@
-#!/usr/bin/python
-""" This """
 import cherrypy
 import json
 import hashlib
@@ -56,7 +54,6 @@ def showUserPage():
         for i in range(5,len(users)) :
 
             userUPI= users[i].split(',')[0]
-
             #No need to show current user their own profile
             if (userUPI != username):
                 page += '<p>' + userUPI + '</p>'
@@ -105,7 +102,7 @@ def saveEdit(name=None,position=None,description=None,location=None,picture=None
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? WHERE username = ?",[name,position,description,location,username])
+        cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,Picture = ? WHERE username = ?",[name,position,description,location,picture,username])
         
         #Save database changes and return user to userpage
         conn.commit()
@@ -146,10 +143,13 @@ def viewProfile(userUPI):
         output_dict = {'sender' :username,'profile_username':profile_username}
         data = json.dumps(output_dict)  
         req = urllib2.Request(url,data,{'Content-Type':'application/json'})
+
+
         try :
-            response = urllib2.urlopen(req,timeout= 3).read()
-        except urllib2.URLError:
-            raise cherrypy.HTTPRedirect('/chat?userUPI=dche192')
+            response = urllib2.urlopen(req,timeout= 5).read()
+        except urllib2.URLError, exception:
+            return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
+
         
         print response
 
