@@ -3,11 +3,13 @@ import json
 import hashlib
 import mimetypes
 import os
+import urllib
 import urllib2
 import sqlite3
 import socket
 import users
 
+port = 15010
 
 #Shows main page after login
 @cherrypy.expose
@@ -146,7 +148,7 @@ def viewProfile(otherUser):
         req = urllib2.Request(url,data,{'Content-Type':'application/json'})
 
         #Attempt to retrieve profile.
-        try :
+        try:
 
             #Load json encoded profile.
             data = urllib2.urlopen(req,timeout= 4).read()
@@ -166,8 +168,8 @@ def viewProfile(otherUser):
             conn = sqlite3.connect(dbFilename)
             cursor = conn.cursor()
 
+            #Check if user profile exists in this database file
             cursor.execute("SELECT Name FROM Profile WHERE UPI = ?",[profile_username])
-
             row = cursor.fetchall()
 
             #Insert new user information if new,update existing user information
@@ -175,6 +177,12 @@ def viewProfile(otherUser):
                 cursor.execute("INSERT INTO Profile(Name,Position,Description,Location,Picture) VALUES (?,?,?,?)",[name,position,description,location,picture])
             else:
                 cursor.execute("UPDATE Profile SET Name = ?,Position = ?,Description = ?,Location = ?,Picture = ? WHERE UPI = ?",[name,position,description,location,picture,profile_username])
+
+            #Attempt to save the image from the given url.
+            try:
+                urllib.urlretrieve(picture, workingDir + "/serverFiles/"+profile_username+".jpg")
+            except urllib2.URLError, exception:
+                pass
 
             conn.commit()
             conn.close()
@@ -197,34 +205,50 @@ def viewProfile(otherUser):
 @cherrypy.expose
 def getProfile(data):
 
-    profile_username = data['profile_username']
-    sender = data['sender']
+    try:
 
-    workingDir = os.path.dirname(__file__) 
+        profile_username = data['profile_username']
+        sender = data['sender']
 
-    #Read database
-    dbFilename = workingDir + "/db/profiles.db"
-    f = open(dbFilename,"r+")
-    conn = sqlite3.connect(dbFilename)
-    cursor = conn.cursor()
+        workingDir = os.path.dirname(__file__) 
 
-    cursor.execute("SELECT Name,Position,Description,Location,Picture FROM Profile WHERE UPI = ?",[profile_username])
 
-    row = cursor.fetchone()
+        #Get user's ip address
+        hostIP = urllib2.urlopen('https://api.ipify.org').read()
+        """For internal ip address"""
+        #hostIP =socket.gethostbyname(socket.gethostname())
 
-    conn.close()
 
-    url = '122.60.90.158:15010/static/serverFiles/lcho484.jpeg'
-    if (len(row) != 0):
+        #Construct URL for image
+        url = "http://" + hostIP + ":" + str(port) + "/static/serverFiles/" + profile_username + ".jpg"
 
-        output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': url}
-        data = json.dumps(output_dict)
-        print data
-        return data
 
-    else:
+        #Read database
+        dbFilename = workingDir + "/db/profiles.db"
+        f = open(dbFilename,"r")
+        conn = sqlite3.connect(dbFilename)
+        cursor = conn.cursor()
 
-        return '4'
+        cursor.execute("SELECT Name,Position,Description,Location,Picture FROM Profile WHERE UPI = ?",[profile_username])
+
+        row = cursor.fetchone()
+
+        conn.close()
+
+        if (len(row) != 0):
+
+            output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': url}
+            data = json.dumps(output_dict)
+            print data
+            return data
+
+        else:
+
+            return '4'
+
+    except KeyError:
+
+        return '1'
 
     
      
