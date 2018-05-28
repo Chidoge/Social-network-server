@@ -6,6 +6,7 @@ import os
 import urllib2
 import sqlite3
 import time
+import Crypto
 
 
 #This API allows other clients to send this client a message
@@ -20,6 +21,14 @@ def receiveMessage(data):
         message = data['message']
         stamp = str(time.time())
         #stamp = data['stamp']
+	encryption = data['encryption']
+	
+	if (encryption == '2'):
+		LOGIN_SERVER_PUBLIC_KEY = '41fb5b5ae4d57c5ee528adb078ac3b2e'
+		message = binascii.unhexlify(message)
+		iv = message[:16]
+		cipher = AES.new(LOGIN_SERVER_PUBLIC_KEY, AES.MODE_CBC, iv )
+		message = cipher.decrypt(message[16:]).rstrip(PADDING)
 
         #Prepare database for storing message    
         workingDir = os.path.dirname(__file__)
@@ -79,7 +88,12 @@ def sendMessage(message):
                 stamp = str(time.time())
                 url = "http://"+ip+":"+port+"/receiveMessage"
 
-                output_dict = {'sender' :username,'message':message,'stamp':stamp,'destination':destination}  	
+		message = self._pad(message)
+        	iv = Random.new().read(AES.block_size)
+        	cipher = AES.new('41fb5b5ae4d57c5ee528adb078ac3b2e', AES.MODE_CBC, iv)
+        	message = base64.b64encode(iv + cipher.encrypt(message))
+
+                output_dict = {'sender' :username,'message':message,'stamp':stamp,'destination':destination,'encryption':'2'}  	
                 data = json.dumps(output_dict) 
 
                 req = urllib2.Request(url,data,{'Content-Type':'application/json'})
@@ -175,5 +189,11 @@ def saveMessage(message,destination):
     conn.close()
 
 @cherrypy.expose
-def getPublicKey():
-    pass
+def receiveFile(data):
+	sender = data['sender']
+	destination = data['destination']
+	filee = data['file']
+	filename = data['filename']
+	content_type = data['content_type']
+	stamp = str(time.time())
+	

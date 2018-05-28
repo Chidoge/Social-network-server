@@ -11,7 +11,7 @@
 
 # The address we listen for connections on
 listen_ip = "0.0.0.0"
-listen_port = 15010
+listen_port = 10010
 
 import cherrypy
 import json
