@@ -14,41 +14,40 @@ import Crypto
 def receiveMessage(data):
 
 
-    try:
 
-        sender = data['sender']
-        destination =  data['destination']
-        message = data['message']
-        stamp = str(time.time())
-        #stamp = data['stamp']
-	encryption = data['encryption']
-	
-	if (encryption == '2'):
-		LOGIN_SERVER_PUBLIC_KEY = '41fb5b5ae4d57c5ee528adb078ac3b2e'
-		message = binascii.unhexlify(message)
-		iv = message[:16]
-		cipher = AES.new(LOGIN_SERVER_PUBLIC_KEY, AES.MODE_CBC, iv )
-		message = cipher.decrypt(message[16:]).rstrip(PADDING)
 
-        #Prepare database for storing message    
-        workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/messages.db"
-        f = open(dbFilename,"r+")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
+    sender = data['sender']
+    destination =  data['destination']
+    message = data['message']
+    stamp = str(time.time())
+    encryption = data.get('encryption','0')
+
+    #stamp = data['stamp']
+
+    if (encryption == '2'):
+    	LOGIN_SERVER_PUBLIC_KEY = '41fb5b5ae4d57c5ee528adb078ac3b2e'
+    	message = binascii.unhexlify(message)
+    	iv = message[:16]
+    	cipher = AES.new(LOGIN_SERVER_PUBLIC_KEY, AES.MODE_CBC, iv )
+    	message = cipher.decrypt(message[16:]).rstrip(PADDING)
+
+    #Prepare database for storing message    
+    workingDir = os.path.dirname(__file__)
+    dbFilename = workingDir + "/db/messages.db"
+    f = open(dbFilename,"r+")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
 
         
         
-        cursor.execute("INSERT INTO Received(UPI,Messages,Stamp) VALUES (?,?,?)",[sender,message,stamp])
+    cursor.execute("INSERT INTO Received(UPI,Messages,Stamp) VALUES (?,?,?)",[sender,message,stamp])
 
-        conn.commit()
-        conn.close()
+    conn.commit()
+    conn.close()
 
-        return '0'
+    return '0'
         
-    except KeyError:
 
-        return '1';
 
 
 
@@ -87,11 +86,11 @@ def sendMessage(message):
 
                 stamp = str(time.time())
                 url = "http://"+ip+":"+port+"/receiveMessage"
-
-		message = self._pad(message)
-        	iv = Random.new().read(AES.block_size)
-        	cipher = AES.new('41fb5b5ae4d57c5ee528adb078ac3b2e', AES.MODE_CBC, iv)
-        	message = base64.b64encode(iv + cipher.encrypt(message))
+                BS = 16
+                message = message + (BS - len(message) % BS) * chr(BS - len(message) % BS) 
+            	iv = Random.new().read(AES.block_size)
+            	cipher = AES.new('41fb5b5ae4d57c5ee528adb078ac3b2e', AES.MODE_CBC, iv)
+            	message = base64.b64encode(iv + cipher.encrypt(message))
 
                 output_dict = {'sender' :username,'message':message,'stamp':stamp,'destination':destination,'encryption':'2'}  	
                 data = json.dumps(output_dict) 
@@ -132,25 +131,26 @@ def getChatPage(userUPI):
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT Messages FROM Received WHERE UPI = ?",[userUPI])
+        cursor.execute("SELECT Message,Sender FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[userUPI,username,username,userUPI])
 
         rows = cursor.fetchall()
 
-        for row in rows:
-            page += '<div class = "chat friend">'
-            page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
-            page += '<p class = "chat-message">' + str(row[0]) + '</p>'
-            page += '</div>'
-
-        cursor.execute("SELECT Messages FROM Sent WHERE UPI = ?",[userUPI])
-
-        rows = cursor.fetchall()
 
         for row in rows:
-            page += '<div class = "chat self">'
-            page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
-            page += '<p class = "chat-message">' + str(row[0]) + '</p>'
-            page += '</div>'
+
+            if (str(row[1]) == userUPI):
+                page += '<div class = "chat friend">'
+                page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
+                page += '<p class = "chat-message">' + str(row[0]) + '</p>'
+                page += '</div>'
+
+            else:
+                page += '<div class = "chat self">'
+                page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
+                page += '<p class = "chat-message">' + str(row[0]) + '</p>'
+                page += '</div>'
+
+
 
         filename = workingDir + "/html/chatbox-bottom.html"
         f = open(filename,"r")
