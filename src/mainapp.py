@@ -115,9 +115,9 @@ class MainApp(object):
         
     #Shows profile of user(userUPI)
     @cherrypy.expose
-    def viewProfile(self,userUPI):
+    def viewProfile(self,otherUser):
 
-        return profiles.viewProfile(userUPI)
+        return profiles.viewProfile(otherUser)
 
 
     #Saves user changes to their profile
@@ -166,9 +166,9 @@ class MainApp(object):
 
     #Chat interface with a user
     @cherrypy.expose
-    def chat(self,userUPI):
+    def chat(self,otherUser):
 
-        return communication.getChatPage(userUPI)
+        return communication.getChatPage(otherUser)
 
 
     #Public Ping API for checking if this client is online

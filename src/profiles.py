@@ -53,13 +53,13 @@ def showUserPage():
         #User list starts after 4th white space
         for i in range(5,len(users)) :
 
-            userUPI= users[i].split(',')[0]
+            otherUser= users[i].split(',')[0]
             #No need to show current user their own profile
-            if (userUPI != username):
-                page += '<p>' + userUPI + '</p>'
-                page += '<form action ="/viewProfile?userUPI=' + userUPI+'" method="post">'
+            if (otherUser != username):
+                page += '<p>' + otherUser + '</p>'
+                page += '<form action ="/viewProfile?otherUser=' + otherUser+'" method="post">'
                 page += '<button type ="submit">View Profile</button></form>'
-                page += '<form action ="/chat?userUPI=' + userUPI +'"method="post">'
+                page += '<form action ="/chat?otherUser=' + otherUser +'"method="post">'
                 page += '<button type ="submit">Send Message</button></form>'
 
 
@@ -116,13 +116,13 @@ def saveEdit(name=None,position=None,description=None,location=None,picture=None
 
 #Call other node's getProfile
 @cherrypy.expose
-def viewProfile(userUPI):
+def viewProfile(otherUser):
 
     #Check session
     try:
 
         username = cherrypy.session['username']
-        profile_username = userUPI
+        profile_username = otherUser
 
         #Open database
         workingDir = os.path.dirname(__file__)
@@ -145,20 +145,21 @@ def viewProfile(userUPI):
         data = json.dumps(output_dict)  
         req = urllib2.Request(url,data,{'Content-Type':'application/json'})
 
-
+        #Attempt to retrieve profile.
         try :
 
-            data = urllib2.urlopen(req,timeout= 5).read()
-
+            #Load json encoded profile.
+            data = urllib2.urlopen(req,timeout= 4).read()
             loaded = json.loads(data)
 
-            name = loaded['fullname']
-            position = loaded['position'] 
-            description = loaded['description']
-            location = loaded['location']
-            #picture = loaded['picture']
+            #Get relevant information from the profile.
+            name = loaded.get('fullname','')
+            position = loaded.get('position','')
+            description = loaded.get('description','')
+            location = loaded.get('location','')
+            picture = loaded.get('picture','')
 
-            #Open database
+            #Open database and store the user profile information
             workingDir = os.path.dirname(__file__)
             dbFilename = workingDir + "/db/profiles.db"
             f = open(dbFilename,"r+")
@@ -171,9 +172,9 @@ def viewProfile(userUPI):
 
             #Insert new user information if new,update existing user information
             if (len(row) == 0):
-                cursor.execute("INSERT INTO Profile(Name,Position,Description,Location) VALUES (?,?,?,?)",[name,position,description,location])
+                cursor.execute("INSERT INTO Profile(Name,Position,Description,Location,Picture) VALUES (?,?,?,?)",[name,position,description,location,picture])
             else:
-                cursor.execute("UPDATE Profile SET Name = ?,Position = ?,Description = ?,Location = ?  WHERE UPI = ?",[name,position,description,location,profile_username])
+                cursor.execute("UPDATE Profile SET Name = ?,Position = ?,Description = ?,Location = ?,Picture = ? WHERE UPI = ?",[name,position,description,location,picture,profile_username])
 
             conn.commit()
             conn.close()
@@ -200,19 +201,23 @@ def getProfile(data):
     sender = data['sender']
 
     workingDir = os.path.dirname(__file__) 
+
     #Read database
     dbFilename = workingDir + "/db/profiles.db"
     f = open(dbFilename,"r+")
     conn = sqlite3.connect(dbFilename)
-    cursor = conn.cursor() 
+    cursor = conn.cursor()
 
     cursor.execute("SELECT Name,Position,Description,Location,Picture FROM Profile WHERE UPI = ?",[profile_username])
 
     row = cursor.fetchone()
 
+    conn.close()
+
+    url = '122.60.90.158:15010/static/serverFiles/lcho484.jpeg'
     if (len(row) != 0):
 
-        output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': row[4]}
+        output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': url}
         data = json.dumps(output_dict)
         print data
         return data

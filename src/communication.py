@@ -13,39 +13,44 @@ import Crypto
 @cherrypy.expose
 def receiveMessage(data):
 
+    #Attempt to get the compulsory fields
+    try:
+
+        sender = data['sender']
+        destination =  data['destination']
+        message = data['message']
+        stamp = data['stamp']
+
+        #Check if message is encrypted
+        encryption = data.get('encryption','0')
 
 
+        if (encryption == '2'):
+        	LOGIN_SERVER_PUBLIC_KEY = '41fb5b5ae4d57c5ee528adb078ac3b2e'
+        	message = binascii.unhexlify(message)
+        	iv = message[:16]
+        	cipher = AES.new(LOGIN_SERVER_PUBLIC_KEY, AES.MODE_CBC, iv )
+        	message = cipher.decrypt(message[16:]).rstrip(PADDING)
 
-    sender = data['sender']
-    destination =  data['destination']
-    message = data['message']
-    stamp = str(time.time())
-    encryption = data.get('encryption','0')
+        #Prepare database for storing message    
+        workingDir = os.path.dirname(__file__)
+        dbFilename = workingDir + "/db/messages.db"
+        f = open(dbFilename,"r+")
+        conn = sqlite3.connect(dbFilename)
+        cursor = conn.cursor()
 
-    #stamp = data['stamp']
+            
+            
+        cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp) VALUES (?,?,?,?)",[sender,destination,message,stamp])
 
-    if (encryption == '2'):
-    	LOGIN_SERVER_PUBLIC_KEY = '41fb5b5ae4d57c5ee528adb078ac3b2e'
-    	message = binascii.unhexlify(message)
-    	iv = message[:16]
-    	cipher = AES.new(LOGIN_SERVER_PUBLIC_KEY, AES.MODE_CBC, iv )
-    	message = cipher.decrypt(message[16:]).rstrip(PADDING)
+        conn.commit()
+        conn.close()
 
-    #Prepare database for storing message    
-    workingDir = os.path.dirname(__file__)
-    dbFilename = workingDir + "/db/messages.db"
-    f = open(dbFilename,"r+")
-    conn = sqlite3.connect(dbFilename)
-    cursor = conn.cursor()
+        return '0'
 
-        
-        
-    cursor.execute("INSERT INTO Received(UPI,Messages,Stamp) VALUES (?,?,?)",[sender,message,stamp])
+    except KeyError:
 
-    conn.commit()
-    conn.close()
-
-    return '0'
+        return '1: Missing Compulsory Field'
         
 
 
@@ -59,7 +64,7 @@ def sendMessage(message):
 
     #Check session
     try:
-        username = cherrypy.session['username']
+        sender = cherrypy.session['username']
         destination = cherrypy.session['chatTo']
 
         if (message == None or len(message) == 0):
@@ -79,20 +84,21 @@ def sendMessage(message):
             port = str(row[0][1])
 
             #Ping destination to see if they are online
-            pingResponse = urllib2.urlopen("http://"+ip+":"+port+"/ping?sender="+str(username)).read()
+            pingResponse = urllib2.urlopen("http://"+ip+":"+port+"/ping?sender="+str(sender)).read()
 
             #If destination was pinged successfully
             if (pingResponse == '0'):
 
                 stamp = str(time.time())
                 url = "http://"+ip+":"+port+"/receiveMessage"
-                BS = 16
+
+                """BS = 16
                 message = message + (BS - len(message) % BS) * chr(BS - len(message) % BS) 
             	iv = Random.new().read(AES.block_size)
             	cipher = AES.new('41fb5b5ae4d57c5ee528adb078ac3b2e', AES.MODE_CBC, iv)
-            	message = base64.b64encode(iv + cipher.encrypt(message))
+            	message = base64.b64encode(iv + cipher.encrypt(message))"""
 
-                output_dict = {'sender' :username,'message':message,'stamp':stamp,'destination':destination,'encryption':'2'}  	
+                output_dict = {'sender' :sender,'message':message,'stamp':stamp,'destination':destination,'encryption':'0'}  	
                 data = json.dumps(output_dict) 
 
                 req = urllib2.Request(url,data,{'Content-Type':'application/json'})
@@ -101,9 +107,10 @@ def sendMessage(message):
     	    
                 if (response[0] == '0'):
                     #Keep them on chat page
-                    saveMessage(message,destination)
-                    raise cherrypy.HTTPRedirect('/chat?userUPI='+destination)
+                    saveMessage(message,sender,destination)
+                    raise cherrypy.HTTPRedirect('/chat?otherUser='+destination)
                 else:
+
                     print 'Code error : ' + response[0]
                     return 'Message not sent but ping response is 0'
 
@@ -113,7 +120,7 @@ def sendMessage(message):
 
 
 @cherrypy.expose
-def getChatPage(userUPI):
+def getChatPage(otherUser):
 
     #Check session
     try:
@@ -124,21 +131,21 @@ def getChatPage(userUPI):
         f = open(filename,"r")
         page = f.read()
         f.close()
-        cherrypy.session['chatTo'] = userUPI
+        cherrypy.session['chatTo'] = otherUser
 
         dbFilename = workingDir + "/db/messages.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT Message,Sender FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[userUPI,username,username,userUPI])
+        cursor.execute("SELECT Message,Sender FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[otherUser,username,username,otherUser])
 
         rows = cursor.fetchall()
 
 
         for row in rows:
 
-            if (str(row[1]) == userUPI):
+            if (str(row[1]) == otherUser):
                 page += '<div class = "chat friend">'
                 page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
                 page += '<p class = "chat-message">' + str(row[0]) + '</p>'
@@ -172,9 +179,9 @@ def ping(sender):
     return '0'
 
 @cherrypy.expose
-def saveMessage(message,destination):
+def saveMessage(message,sender,destination):
 
-    #Open database
+
     workingDir = os.path.dirname(__file__)
     dbFilename = workingDir + "/db/messages.db"
     f = open(dbFilename,"r+")
@@ -183,10 +190,12 @@ def saveMessage(message,destination):
 
     stamp = str(time.time())
 
-    cursor.execute("INSERT INTO Sent(UPI,Messages,Stamp) VALUES (?,?,?)",[destination,message,stamp])
+    cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp) VALUES (?,?,?,?)",[sender,destination,message,stamp])
 
     conn.commit()
     conn.close()
+
+
 
 @cherrypy.expose
 def receiveFile(data):
