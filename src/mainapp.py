@@ -127,7 +127,7 @@ class MainApp(object):
 
     #Saves user changes to their profile
     @cherrypy.expose
-    def saveEdit(self,name=None,position=None,description=None,location=None,picture=None):
+    def saveEdit(self,name,position,description,location,picture=None):
 
         profiles.saveEdit(name,position,description,location,picture)
 
@@ -178,9 +178,9 @@ class MainApp(object):
 
     #Calls other node's /receiveFile API
     @cherrypy.expose
-    def sendFile(self,destination):
+    def sendFile(self,filename = None):
 
-        return communication.sendFile(destination)
+        return communication.sendFile(filename)
 
     #Public(Common) API for receiving message
     @cherrypy.expose

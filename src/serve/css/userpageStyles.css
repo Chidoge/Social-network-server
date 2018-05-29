@@ -49,7 +49,7 @@ button:hover {
 
     float : right;
     width : 20%;
-    margin-top : -10%;
+    margin-top : -15%;
     height : 80%;
 
     position : relative;
@@ -82,11 +82,11 @@ button:hover {
 
 
 .modal {
-    display: none; 
+    display: none;
     position: fixed;
-    left : 20%;
+    left : 0;
     top : 5%;
-    width: 50%;
+    width: 35%;
     height: 80%;
 }
 
@@ -99,6 +99,17 @@ button:hover {
 
 }
 
+.crop {
+    width : 200px;
+    height: 200px;
+    overflow: hidden;
+}
+
+.crop img {
+    width: 400px;
+    height: 400px;
+    margin: -75px 0 0 -100px;
+}
 
 /* Add Zoom Animation */
 .animate {
@@ -231,9 +242,10 @@ button:hover {
     background: #1ddced;
     padding: 5px 15px;
     font-size: 20px;
+    margin-left: 1%;
     color: #fff;
     border: none;
-    margin-top : 10px;
+    width : 100px;
     border-radius: 10px;
     cursor: pointer;
 

@@ -13,7 +13,7 @@ port = 15010
 
 #Shows main page after login
 @cherrypy.expose
-def showUserPage(chatUser = None):
+def showUserPage():
 
     #Check if user is logged in before displaying
     try:
@@ -62,26 +62,27 @@ def showUserPage(chatUser = None):
                 page += '<form action ="/chatUser?destination=' + destination +'"method="post">'
                 page += '<button type="submit">Chat</button></form>'
 
-
         page += '</div>'
 
+        page = page.replace('NAME_HERE',name)
+        page = page.replace('POSITION_HERE',position)
+        page = page.replace('DESCRIPTION_HERE',description)
+        page = page.replace('LOCATION_HERE',location)
+        page = page.replace('PICTURE_HERE',picture)
 
-
-        page = page.replace('NAME_HERE',"'"+name+"'")
-        page = page.replace('POSITION_HERE',"'"+position+"'")
-        page = page.replace('DESCRIPTION_HERE',"'"+description+"'")
-        page = page.replace('LOCATION_HERE',"'"+location+"'")
-        page = page.replace('PICTURE_HERE',"'"+picture+"'")
+        page = page.replace('NAME_FORM',"'"+name+"'")
+        page = page.replace('POSITION_FORM',"'"+position+"'")
+        page = page.replace('DESCRIPTION_FORM',"'"+description+"'")
+        page = page.replace('LOCATION_FORM',"'"+location+"'")
 
         destination = cherrypy.session.get('destination','')
 
         if (destination != ''):
-            #Chat
+
             filename = workingDir + "/html/chatbox.html"
             f = open(filename,"r")
             page += f.read()
             f.close
-
 
             page += '<div id = "chatlogs" class="chatlogs">'
 
@@ -125,7 +126,7 @@ def showUserPage(chatUser = None):
 
 
 @cherrypy.expose
-def saveEdit(name=None,position=None,description=None,location=None,picture=None):
+def saveEdit(name,position,description,location,picture = None):
     
     #Check if user is logged in
     try:
@@ -140,8 +141,14 @@ def saveEdit(name=None,position=None,description=None,location=None,picture=None
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,Picture = ? WHERE UPI = ?",[name,position,description,location,picture,username])
-        
+
+        if (picture != ''):
+            picture = "/static/serverFiles/" + picture
+
+            cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,Picture = ? WHERE UPI = ?",[name,position,description,location,picture,username])
+        else:
+            cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ?  WHERE UPI = ?",[name,position,description,location,username])
+
         #Save database changes and return user to userpage
         conn.commit()
         conn.close()

@@ -136,16 +136,19 @@ def saveMessage(message,sender,destination):
 
 
 @cherrypy.expose
-def sendFile(destination):
+def sendFile(filename):
 
     #Check for user session
     try:
         sender = cherrypy.session['username']
+        destination = cherrypy.session['destination']
 
         #Open image for sending
         workingDir = os.path.dirname(__file__)
-        filename = workingDir + "/serve/serverFiles/blaze.mp3"
-        img = open(filename, 'rb')
+
+        newfilename = workingDir + "/serve/serverFiles/" + filename
+        img = open(newfilename, 'rb')
+
         read = img.read()
 
         data = users.getUserIP_PORT(destination)
@@ -155,12 +158,12 @@ def sendFile(destination):
         encodedFile = base64.b64encode(read)
 
         stamp = str(time.time())
-        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : 'blaze.mp3' ,'content_type' : 'audio/mpeg','stamp' :stamp}
+        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : filename ,'content_type' : 'image/jpg','stamp' :stamp}
         data = json.dumps(output_dict)
 
 
         url = "http://%s:%s/receiveFile" % (ip,port)
-
+        print url
         try:
             req = urllib2.Request(url,data,{'Content-Type':'application/json'})
             response = urllib2.urlopen(req).read()

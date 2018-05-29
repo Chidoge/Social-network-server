@@ -14,19 +14,19 @@
 				    <div class="container">
 				    	<h1>Edit My Profile</h1>
 				    	<label for="Name"><b>Name</b></label>
-				    	<input type="text" value = NAME_HERE name="name">
+				    	<input type="text" value = NAME_FORM name="name">
 
 				    	<label for="Position"><b>Position</b></label>
-				    	<input type="text" value = POSITION_HERE name="position">
+				    	<input type="text" value = POSITION_FORM name="position">
 
 				    	<label for="Description"><b>Description</b></label>
-				    	<input type="text" value = DESCRIPTION_HERE name="description">
+				    	<input type="text" value = DESCRIPTION_FORM name="description">
 
 				    	<label for="Location"><b>Location</b></label>
-				    	<input type="text" value = LOCATION_HERE name="location">
+				    	<input type="text" value = LOCATION_FORM name="location">
 
-				    	<label for="Picture"><b>Picture</b></label>
-				    	<input type="text" value = PICTURE_HERE name="picture">
+				    	<label for="Picture"><b>Profile Picture</b></label>
+  						<input type="file" name="picture">
 				       
 				     	<button type="submit">Save</button>
 				     	<button type="button" onclick="document.getElementById('editProfile').style.display='none'" >Cancel</button>
@@ -51,7 +51,10 @@
 	<p>Position : POSITION_HERE </p>
 	<p>Description : DESCRIPTION_HERE </p>
 	<p>Location : LOCATION_HERE </p>
-	<p>Picture : PICTURE_HERE </p>
+	<div class="crop">
+    	<img src= PICTURE_HERE>
+	</div>
+
 
 
 

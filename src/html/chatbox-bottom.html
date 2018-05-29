@@ -1,9 +1,11 @@
 </div>
 <div class="chat-form">
 			<form id = "textForm" action ="/sendMessage" method="post" enctype="multipart/form-data">
-				<textarea input type = "submit" name = "message"  onkeydown="if (event.keyCode == 13) {if(document.getElementById('textForm').value != '')this.form.submit(); return false; }"></textarea>
-				<button>Send</button></form>
-				<button type="button" onclick="document.getElementById('chatModal').style.display='none'" >Cancel</button>
+				<textarea input type = "submit" name = "message"  onkeydown="if (event.keyCode == 13) {if(document.getElementById('textForm').value != '')this.form.submit(); return false; }"></textarea> 
+			<button>Send</button></form>
+			<form action="/sendFile" method="post" enctype="multipart/form-data">
+  				<input type="file" name="filename">
+  			<button>Upload</button></form>
 		</div>
 	</div>
 </div>
