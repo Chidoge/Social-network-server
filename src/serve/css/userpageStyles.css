@@ -167,6 +167,7 @@ button:hover {
     display: flex;
     flex-flow: row wrap;
     align-items: flex-start;
+    overflow-x: hidden;
     margin-bottom: 10px;
 }
 
@@ -194,9 +195,12 @@ button:hover {
 }
 
 .chat .chat-message {
-    width: auto;
+
     position : sticky;
+    width: auto;
     max-width: 300px;
+    word-wrap:break-word;
+    display:inline-block;
     padding: 15px;
     margin: 5px 10px 0;
     border-radius: 10px;

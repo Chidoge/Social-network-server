@@ -95,19 +95,18 @@ def showUserPage():
             rows = cursor.fetchall()
 
 
-
             for row in rows:
 
                 if (str(row[1]) == destination):
                     page += '<div class = "chat friend">'
                     page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
-                    page += '<p class = "chat-message">' + str(row[0]) + '</p>'
+                    page += '<div class = "chat-message">' + str(row[0]) + '</div>'
                     page += '</div>'
 
                 else:
                     page += '<div class = "chat self">'
                     #page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
-                    page += '<p class = "chat-message">' + str(row[0]) + '</p>'
+                    page += '<div class = "chat-message">' + str(row[0]) + '</div>'
                     page += '</div>'
 
             page += '</div>'

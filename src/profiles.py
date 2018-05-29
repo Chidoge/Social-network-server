@@ -1,50 +1,12 @@
 import cherrypy
 import json
-import hashlib
 import mimetypes
 import os
 import urllib
 import urllib2
 import sqlite3
-import socket
-import users
 
 port = 15010
-
-
-@cherrypy.expose
-def saveEdit(name,position,description,location,picture = None):
-    
-    #Check if user is logged in
-    try:
-
-        username = cherrypy.session['username']    
-        #Get working directory to find html and database file
-        workingDir = os.path.dirname(__file__)
-        
-        #Read database
-        dbFilename = workingDir + "/db/profiles.db"
-        f = open(dbFilename,"r+")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
-
-
-        if (picture != ''):
-            picture = "/static/serverFiles/" + picture
-
-            cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,Picture = ? WHERE UPI = ?",[name,position,description,location,picture,username])
-        else:
-            cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ?  WHERE UPI = ?",[name,position,description,location,username])
-
-        #Save database changes and return user to userpage
-        conn.commit()
-        conn.close()
-        raise cherrypy.HTTPRedirect('/showUserPage')
-
-    except KeyError:
-
-        raise cherrypy.HTTPRedirect('/')
-
 
 
 #Call other node's getProfile
@@ -70,18 +32,20 @@ def viewProfile(destination):
         ip = str(row[0][0])
         port = str(row[0][1])
 
-        #URL for requesting profile
+        #Construct URL for requesting profile
         url = "http://"+ip+":"+port+"/getProfile"
 
         #Encode input arguments into json
         output_dict = {'sender' :username,'profile_username':profile_username}
-        data = json.dumps(output_dict)  
+        data = json.dumps(output_dict)
+
+        #Put arguments into url header  
         req = urllib2.Request(url,data,{'Content-Type':'application/json'})
 
         #Attempt to retrieve profile.
         try:
 
-            #Load json encoded profile.
+            #Load json encoded profile. Give 4 second for other side to respond.
             data = urllib2.urlopen(req,timeout= 4).read()
             loaded = json.loads(data)
 
@@ -103,29 +67,31 @@ def viewProfile(destination):
             cursor.execute("SELECT Name FROM Profile WHERE UPI = ?",[profile_username])
             row = cursor.fetchall()
 
-            #Insert new user information if new,update existing user information
+            #Insert new user information if new, otherwise update existing profile.
+            #TODO: ADD lastUpdated implementation
             if (len(row) == 0):
                 cursor.execute("INSERT INTO Profile(Name,Position,Description,Location,Picture) VALUES (?,?,?,?)",[name,position,description,location,picture])
             else:
                 cursor.execute("UPDATE Profile SET Name = ?,Position = ?,Description = ?,Location = ?,Picture = ? WHERE UPI = ?",[name,position,description,location,picture,profile_username])
 
-            #Attempt to save the image from the given url.
+
+            #Attempt to save the profile image from the given url.
             try:
-                urllib.urlretrieve(picture, workingDir + "/serve/serverFiles/"+profile_username+".jpg")
+                urllib.urlretrieve(picture, workingDir + "/serve/serverFiles/profile_pictures/"+profile_username+".jpg")
             except urllib2.URLError, exception:
                 pass
 
+            #Save database changes
             conn.commit()
             conn.close()
             
             return data
 
+        #In case API call fails.
         except urllib2.URLError, exception:
 
             return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
 
-        
-        print response
 
     except KeyError:
 
@@ -137,13 +103,12 @@ def viewProfile(destination):
 @cherrypy.expose
 def getProfile(data):
 
+    #Try block; in case the API caller didn't add the compulsory input arguments
     try:
 
+        #Extract inputs for this API call
         profile_username = data['profile_username']
         sender = data['sender']
-
-        workingDir = os.path.dirname(__file__) 
-
 
         #Get user's ip address
         hostIP = urllib2.urlopen('https://api.ipify.org').read()
@@ -152,33 +117,82 @@ def getProfile(data):
 
 
         #Construct URL for image
-        url = "http://" + hostIP + ":" + str(port) + "/static/serverFiles/" + profile_username + ".jpg"
+        url = "http://" + hostIP + ":" + str(port) + "/static/serverFiles/profile_pictures/" + profile_username + ".jpg"
 
-        #Open database
+
+        #Open database for extracting profile
+        workingDir = os.path.dirname(__file__) 
         dbFilename = workingDir + "/db/profiles.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
+
         #Read database and see if requested profile exists
         cursor.execute("SELECT Name,Position,Description,Location,Picture,lastUpdated FROM Profile WHERE UPI = ?",[profile_username])
         row = cursor.fetchone()
+
         conn.close()
 
+        #Check if profile exists in the database
         if (len(row) != 0):
 
+            #Extract profile information in the rows and store it into a dictonary object to json encode later
             output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': url,'lastUpdated':row[5]}
+
+            #Json encode the output dictionary then return it
             data = json.dumps(output_dict)
             return data
 
         else:
+
             return 'Requested profile does not exist'
 
+
+    #Return error code 1 : Missing compulsory field
     except KeyError:
 
         return '1'
 
+
+
+#Function that saves user's profile edits
+@cherrypy.expose
+def saveEdit(name,position,description,location,picture):
     
-     
+    #Check user session
+    try:
+
+        username = cherrypy.session['username']  
+
+        #Prepare database for writing to
+        workingDir = os.path.dirname(__file__)
+        dbFilename = workingDir + "/db/profiles.db"
+        f = open(dbFilename,"r+")
+        conn = sqlite3.connect(dbFilename)
+        cursor = conn.cursor()
+
+        #Checks if anything was uploaded, and makes sure that it is an image(.png and .jpg only supported currently).
+        #Then update the profile.
+        if (picture != ''):
+            if (picture.endswith('.jpg') or picture.endswith('.png')):
+                picture = "/static/serverFiles/profile_pictures/" + picture
+                cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,Picture = ? WHERE UPI = ?",[name,position,description,location,picture,username])
+        else:
+            cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ?  WHERE UPI = ?",[name,position,description,location,username])
+
+
+        #Save database changes and return to userpage
+        conn.commit()
+        conn.close()
+
+        raise cherrypy.HTTPRedirect('/showUserPage')
+
+    #Redirect to index
+    except KeyError:
+
+        raise cherrypy.HTTPRedirect('/')
+
+
 
     

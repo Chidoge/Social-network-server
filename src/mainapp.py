@@ -128,7 +128,7 @@ class MainApp(object):
 
     #Saves user changes to their profile
     @cherrypy.expose
-    def saveEdit(self,name,position,description,location,picture=None):
+    def saveEdit(self,name,position,description,location,picture):
 
         profiles.saveEdit(name,position,description,location,picture)
 

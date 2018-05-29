@@ -59,7 +59,6 @@ def receiveMessage(data):
 
 
 
-
 #Calls the destination's /receiveMessage API to send a message to them
 @cherrypy.expose
 def sendMessage(message):
