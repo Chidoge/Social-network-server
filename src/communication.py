@@ -67,11 +67,11 @@ def sendMessage(message):
     #Check session
     try:
         sender = cherrypy.session['username']
-        destination = cherrypy.session['chatTo']
+        destination = cherrypy.session['destination']
 
         if (message == None or len(message) == 0):
 
-            raise cherrypy.HTTPRedirect('/chat?destination='+destination)
+            raise cherrypy.HTTPRedirect('/chatUser?destination='+destination)
 
         else :
             
@@ -103,11 +103,11 @@ def sendMessage(message):
                 req = urllib2.Request(url,data,{'Content-Type':'application/json'})
 
                 response = urllib2.urlopen(req).read()
-    	    
+
                 if (response[0] == '0'):
                     #Keep them on chat page
                     saveMessage(message,sender,destination)
-                    raise cherrypy.HTTPRedirect('/chat?destination='+destination)
+                    raise cherrypy.HTTPRedirect('/showUserPage')
                 else:
 
                     print 'Code error : ' + response[0]
@@ -116,61 +116,6 @@ def sendMessage(message):
     except KeyError:
 
         return 'Session expired'
-
-
-@cherrypy.expose
-def getChatPage(destination):
-
-    #Check session
-    try:
-        username = cherrypy.session['username']
-        #Serve chat page html
-        workingDir = os.path.dirname(__file__)
-        filename = workingDir + "/html/chatbox.html"
-        f = open(filename,"r")
-        page = f.read()
-        f.close()
-        cherrypy.session['chatTo'] = destination
-
-        dbFilename = workingDir + "/db/messages.db"
-        f = open(dbFilename,"r")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT Message,Sender FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,username,username,destination])
-
-        rows = cursor.fetchall()
-
-
-        for row in rows:
-
-            if (str(row[1]) == destination):
-                page += '<div class = "chat friend">'
-                page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
-                page += '<p class = "chat-message">' + str(row[0]) + '</p>'
-                page += '</div>'
-
-            else:
-                page += '<div class = "chat self">'
-                page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
-                page += '<p class = "chat-message">' + str(row[0]) + '</p>'
-                page += '</div>'
-
-
-
-        filename = workingDir + "/html/chatbox-bottom.html"
-        f = open(filename,"r")
-        page += f.read()
-        f.close()
-
-
-        return page
-
-    except KeyError:
-
-        return 'Session expired'
-
-
 
 
 @cherrypy.expose

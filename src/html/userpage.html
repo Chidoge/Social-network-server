@@ -3,9 +3,10 @@
 	<head>
 		<title>User-Page</title>
 		<link href="/static/css/userpageStyles.css" rel="stylesheet" type = "text/css">
+		<script type = "text/javascript" src = "/static/js/scroll.js"></script>
 	</head>
 
-	<body>
+	<body onload = "gotoBottom()">
 		<div id="editProfile" class="modal">
   
   				<form class="modal-content animate" action="/saveEdit?name=name&position=position">
@@ -13,26 +14,26 @@
 				    <div class="container">
 				    	<h1>Edit My Profile</h1>
 				    	<label for="Name"><b>Name</b></label>
-				    	<input type="text" placeholder="Enter Name" name="name">
+				    	<input type="text" value = NAME_HERE name="name">
 
 				    	<label for="Position"><b>Position</b></label>
-				    	<input type="text" placeholder="Enter Position" name="position">
+				    	<input type="text" value = POSITION_HERE name="position">
 
 				    	<label for="Description"><b>Description</b></label>
-				    	<input type="text" placeholder="Enter Description" name="description">
+				    	<input type="text" value = DESCRIPTION_HERE name="description">
 
 				    	<label for="Location"><b>Location</b></label>
-				    	<input type="text" placeholder="Enter Location" name="location">
+				    	<input type="text" value = LOCATION_HERE name="location">
 
 				    	<label for="Picture"><b>Picture</b></label>
-				    	<input type="text" placeholder="Enter Picture" name="picture">
+				    	<input type="text" value = PICTURE_HERE name="picture">
 				       
 				     	<button type="submit">Save</button>
 				     	<button type="button" onclick="document.getElementById('editProfile').style.display='none'" >Cancel</button>
 				    </div>
 				</form>
 			</div>
-
+	
 		<div class = "users">
 			<h1>Online Users</h1>
 		</div>
@@ -46,6 +47,12 @@
 			</table>
 		</div>
 
-		<div class = "sidebar">
+	<p>Name : NAME_HERE </p>
+	<p>Position : POSITION_HERE </p>
+	<p>Description : DESCRIPTION_HERE </p>
+	<p>Location : LOCATION_HERE </p>
+	<p>Picture : PICTURE_HERE </p>
+
+
 
 		

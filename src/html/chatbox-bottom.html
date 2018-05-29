@@ -1,16 +1,13 @@
-
 </div>
- <div class="chat-form">
- 	<form id = "textForm" action ="/sendMessage" method="post" enctype="multipart/form-data">
-      <textarea input type = "submit" name = "message"  onkeydown="if (event.keyCode == 13) {if(document.getElementById('textForm').value != '')this.form.submit(); return false; }"></textarea>
-      <button>Send</button></form>
-  	</div>
-  </div>
-
+<div class="chat-form">
+			<form id = "textForm" action ="/sendMessage" method="post" enctype="multipart/form-data">
+				<textarea input type = "submit" name = "message"  onkeydown="if (event.keyCode == 13) {if(document.getElementById('textForm').value != '')this.form.submit(); return false; }"></textarea>
+				<button>Send</button></form>
+				<button type="button" onclick="document.getElementById('chatModal').style.display='none'" >Cancel</button>
+		</div>
+	</div>
+</div>
 
 </body>
-<script>
- var elem = document.getElementById('chatbox');
-  elem.scrollTop = elem.scrollHeight;
- </script>
+
 </html>

@@ -113,7 +113,11 @@ class MainApp(object):
         users.saveOnlineUsers()
         return profiles.showUserPage()
 
-        
+    @cherrypy.expose
+    def chatUser(self,destination):
+
+        users.setNewChatUser(destination)
+     
     #Shows profile of user(userUPI)
     @cherrypy.expose
     def viewProfile(self,destination):
@@ -156,13 +160,6 @@ class MainApp(object):
 #-------------------------- COMMUNICATION(CLIENT-CLIENT) METHODS --------------------------#
     
 
-    #Chat interface with a user
-    @cherrypy.expose
-    def chat(self,destination):
-
-        return communication.getChatPage(destination)
-
-
     #Public Ping API for checking if this client is online
     @cherrypy.expose
     def ping(self,sender):
@@ -174,7 +171,7 @@ class MainApp(object):
     @cherrypy.expose
     def sendMessage(self,message=None):
         if (message != None):
-            communication.sendMessage(message)
+            return communication.sendMessage(message)
         else:
             raise cherrypy.HTTPRedirect('/showUserPage')
 

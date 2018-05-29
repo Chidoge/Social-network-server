@@ -73,3 +73,11 @@ def getUserIP_PORT(destination):
     info = {'ip' : ip, 'port' : port}
 
     return info
+
+
+@cherrypy.expose
+def setNewChatUser(destination):
+
+    cherrypy.session['destination'] = str(destination)
+
+    raise cherrypy.HTTPRedirect('/showUserPage')

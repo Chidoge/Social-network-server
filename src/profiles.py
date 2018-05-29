@@ -13,7 +13,7 @@ port = 15010
 
 #Shows main page after login
 @cherrypy.expose
-def showUserPage():
+def showUserPage(chatUser = None):
 
     #Check if user is logged in before displaying
     try:
@@ -37,11 +37,11 @@ def showUserPage():
 
         rows = cursor.fetchall()
 
-        name = rows[0][0]
-        position = rows[0][1]
-        description = rows[0][2]
-        location = rows[0][3]
-        picture = rows[0][4]
+        name = str(rows[0][0])
+        position = str(rows[0][1])
+        description = str(rows[0][2])
+        location = str(rows[0][3])
+        picture = str(rows[0][4])
 
 
         #Call API to check for other online users
@@ -51,41 +51,70 @@ def showUserPage():
         #Split API response using white space as tokeniser
         users = response.split()
 
-
+        page += '<div class = "sidebar">'
         #User list starts after 4th white space
         for i in range(5,len(users)) :
 
-            destination= users[i].split(',')[0]
+            destination = users[i].split(',')[0]
             #No need to show current user their own profile
             if (destination != username):
                 page += '<p>' + destination + '</p>'
-                page += '<form action ="/viewProfile?destination=' + destination+'" method="post">'
-                page += '<button type ="submit">View Profile</button></form>'
-                page += '<form action ="/chat?destination=' + destination +'"method="post">'
-                page += '<button type ="submit">Send Message</button></form>'
+                page += '<form action ="/chatUser?destination=' + destination +'"method="post">'
+                page += '<button type="submit">Chat</button></form>'
+
+
+        page += '</div>'
 
 
 
-        filename = workingDir + "/html/userpage-bottom.html"
-        f = open(filename,"r")
-        page += f.read()
-        f.close
+        page = page.replace('NAME_HERE',"'"+name+"'")
+        page = page.replace('POSITION_HERE',"'"+position+"'")
+        page = page.replace('DESCRIPTION_HERE',"'"+description+"'")
+        page = page.replace('LOCATION_HERE',"'"+location+"'")
+        page = page.replace('PICTURE_HERE',"'"+picture+"'")
 
-        page = page.replace("NAME_HERE",name)
-        page = page.replace('POSITION_HERE',position)
-        page = page.replace('DESCRIPTION_HERE',description)
-        page = page.replace('LOCATION_HERE',location)
-        page = page.replace('PICTURE_HERE',picture)
-        """ #Chat
-        filename = workingDir + "/html/chatbox.html"
-        f = open(filename,"r")
-        page += f.read()
-        f.close
-                #Chat
-        filename = workingDir + "/html/chatbox-bottom.html"
-        f = open(filename,"r")
-        page += f.read()
-        f.close"""
+        destination = cherrypy.session.get('destination','')
+
+        if (destination != ''):
+            #Chat
+            filename = workingDir + "/html/chatbox.html"
+            f = open(filename,"r")
+            page += f.read()
+            f.close
+
+
+            page += '<div id = "chatlogs" class="chatlogs">'
+
+            dbFilename = workingDir + "/db/messages.db"
+            f = open(dbFilename,"r")
+            conn = sqlite3.connect(dbFilename)
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT Message,Sender FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,username,username,destination])
+
+            rows = cursor.fetchall()
+
+
+            for row in rows:
+
+                if (str(row[1]) == destination):
+                    page += '<div class = "chat friend">'
+                    page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
+                    page += '<p class = "chat-message">' + str(row[0]) + '</p>'
+                    page += '</div>'
+
+                else:
+                    page += '<div class = "chat self">'
+                    page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
+                    page += '<p class = "chat-message">' + str(row[0]) + '</p>'
+                    page += '</div>'
+
+            page += '</div>'
+            filename = workingDir + "/html/chatbox-bottom.html"
+            f = open(filename,"r")
+            page += f.read()
+            f.close        
+
         return page 
         
     #If not logged in and trying to access userpage, bring them back to the default page
