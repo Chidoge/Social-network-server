@@ -21,6 +21,7 @@ import os
 import urllib2
 import sqlite3
 import socket
+import atexit
 
 #Student defined files
 import profiles
@@ -188,7 +189,11 @@ class MainApp(object):
 #-------------------------------------------END--------------------------------------------#
 
 
+def exit_handler():
 
+    login.signout()
+
+atexit.register(exit_handler)
 
 
 #-------------------------------------RUNS THE SERVER--------------------------------------#
@@ -201,7 +206,7 @@ def runMainApp():
 
             '/static' : {
                 'tools.staticdir.on'  : True,
-                'tools.staticdir.dir' : os.path.dirname(__file__)
+                'tools.staticdir.dir' : os.path.dirname(__file__) + "/serve"
                 
             }
         }

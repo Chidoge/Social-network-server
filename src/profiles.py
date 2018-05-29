@@ -79,8 +79,8 @@ def showUserPage():
 
 
 
-
         return page 
+        
     #If not logged in and trying to access userpage, bring them back to the default page
     except KeyError:
 
@@ -180,7 +180,7 @@ def viewProfile(otherUser):
 
             #Attempt to save the image from the given url.
             try:
-                urllib.urlretrieve(picture, workingDir + "/serverFiles/"+profile_username+".jpg")
+                urllib.urlretrieve(picture, workingDir + "/serve/serverFiles/"+profile_username+".jpg")
             except urllib2.URLError, exception:
                 pass
 
@@ -202,6 +202,7 @@ def viewProfile(otherUser):
 
 
 
+#Allows other users to request a profile from this node
 @cherrypy.expose
 def getProfile(data):
 
@@ -222,29 +223,25 @@ def getProfile(data):
         #Construct URL for image
         url = "http://" + hostIP + ":" + str(port) + "/static/serverFiles/" + profile_username + ".jpg"
 
-
-        #Read database
+        #Open database
         dbFilename = workingDir + "/db/profiles.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
+        #Read database and see if requested profile exists
         cursor.execute("SELECT Name,Position,Description,Location,Picture FROM Profile WHERE UPI = ?",[profile_username])
-
         row = cursor.fetchone()
-
         conn.close()
 
         if (len(row) != 0):
 
             output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': url}
             data = json.dumps(output_dict)
-            print data
             return data
 
         else:
-
-            return '4'
+            return 'Requested profile does not exist'
 
     except KeyError:
 
