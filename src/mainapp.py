@@ -110,13 +110,15 @@ class MainApp(object):
     def showUserPage(self):
 
         users.saveOnlineUsers()
-        return profiles.showUserPage()
+        return users.showUserPage()
+
 
     @cherrypy.expose
     def chatUser(self,destination):
 
         users.setNewChatUser(destination)
      
+
     #Shows profile of user(userUPI)
     @cherrypy.expose
     def viewProfile(self,destination):
@@ -168,8 +170,11 @@ class MainApp(object):
 
     #Calls other node's /receiveMessage API
     @cherrypy.expose
-    def sendMessage(self,message=None):
-        if (message != None):
+    def sendMessage(self,message):
+
+        #Makes sure user isn't just sending nothing
+        messageNoSpaces = message.replace(" ","")
+        if (len(messageNoSpaces) != 0):
             return communication.sendMessage(message)
         else:
             raise cherrypy.HTTPRedirect('/showUserPage')
@@ -177,9 +182,12 @@ class MainApp(object):
 
     #Calls other node's /receiveFile API
     @cherrypy.expose
-    def sendFile(self,filename = None):
+    def sendFile(self,filename):
+        if (filename != ''):
+            return communication.sendFile(filename)
+        else:
+            raise cherrypy.HTTPRedirect('/showUserPage')
 
-        return communication.sendFile(filename)
 
     #Public(Common) API for receiving message
     @cherrypy.expose
@@ -188,6 +196,7 @@ class MainApp(object):
 
         data = cherrypy.request.json
         return communication.receiveMessage(data)
+
 
     #Public(Common) API for receiving files
     @cherrypy.expose

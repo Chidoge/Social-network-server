@@ -48,6 +48,7 @@ def receiveMessage(data):
         conn.commit()
         conn.close()
 
+        raise cherrypy.HTTPRedirect('/showUserPage')
         return '0'
 
     except KeyError:
@@ -138,6 +139,7 @@ def saveMessage(message,sender,destination):
 @cherrypy.expose
 def sendFile(filename):
 
+
     #Check for user session
     try:
         sender = cherrypy.session['username']
@@ -145,7 +147,6 @@ def sendFile(filename):
 
         #Open image for sending
         workingDir = os.path.dirname(__file__)
-        print 'FIle: ' + str(filename)
         newfilename = workingDir + "/serve/serverFiles/" + str(filename)
         img = open(newfilename, 'rb')
 
