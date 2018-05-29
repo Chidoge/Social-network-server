@@ -3,7 +3,7 @@
 			<form id = "textForm" action ="/sendMessage" method="post" enctype="multipart/form-data">
 				<textarea input type = "submit" name = "message"  onkeydown="if (event.keyCode == 13) {if(document.getElementById('textForm').value != '')this.form.submit(); return false; }"></textarea> 
 			<button>Send</button></form>
-			<form action="/sendFile" method="post" enctype="multipart/form-data">
+			<form action="/sendFile" method="post">
   				<input type="file" name="filename">
   			<button>Upload</button></form>
 		</div>

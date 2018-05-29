@@ -145,8 +145,8 @@ def sendFile(filename):
 
         #Open image for sending
         workingDir = os.path.dirname(__file__)
-
-        newfilename = workingDir + "/serve/serverFiles/" + filename
+        print 'FIle: ' + str(filename)
+        newfilename = workingDir + "/serve/serverFiles/" + str(filename)
         img = open(newfilename, 'rb')
 
         read = img.read()

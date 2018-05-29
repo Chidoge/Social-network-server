@@ -273,13 +273,13 @@ def getProfile(data):
         cursor = conn.cursor()
 
         #Read database and see if requested profile exists
-        cursor.execute("SELECT Name,Position,Description,Location,Picture FROM Profile WHERE UPI = ?",[profile_username])
+        cursor.execute("SELECT Name,Position,Description,Location,Picture,lastUpdated FROM Profile WHERE UPI = ?",[profile_username])
         row = cursor.fetchone()
         conn.close()
 
         if (len(row) != 0):
 
-            output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': url}
+            output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': url,'lastUpdated':row[5]}
             data = json.dumps(output_dict)
             return data
 

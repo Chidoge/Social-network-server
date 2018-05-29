@@ -89,7 +89,6 @@ class MainApp(object):
         login.signout()
 
 
-
     #Compares user typed hashed password with server hashed password.
     @cherrypy.expose
     def authoriseUserLogin(self,username,password):
