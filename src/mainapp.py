@@ -116,9 +116,9 @@ class MainApp(object):
         
     #Shows profile of user(userUPI)
     @cherrypy.expose
-    def viewProfile(self,otherUser):
+    def viewProfile(self,destination):
 
-        return profiles.viewProfile(otherUser)
+        return profiles.viewProfile(destination)
 
 
     #Saves user changes to their profile
@@ -155,21 +155,12 @@ class MainApp(object):
 
 #-------------------------- COMMUNICATION(CLIENT-CLIENT) METHODS --------------------------#
     
-    #Method for sending message(calls other clients /receiveMessage)
-    @cherrypy.expose
-    def sendMessage(self,message=None):
-        if (message != None):
-            communication.sendMessage(message)
-        else:
-            raise cherrypy.HTTPRedirect('/showUserPage')
-
-
 
     #Chat interface with a user
     @cherrypy.expose
-    def chat(self,otherUser):
+    def chat(self,destination):
 
-        return communication.getChatPage(otherUser)
+        return communication.getChatPage(destination)
 
 
     #Public Ping API for checking if this client is online
@@ -179,21 +170,42 @@ class MainApp(object):
         return '0'
 
 
+    #Calls other node's /receiveMessage API
+    @cherrypy.expose
+    def sendMessage(self,message=None):
+        if (message != None):
+            communication.sendMessage(message)
+        else:
+            raise cherrypy.HTTPRedirect('/showUserPage')
+
+
+    #Calls other node's /receiveFile API
+    @cherrypy.expose
+    def sendFile(self,destination):
+
+        return communication.sendFile(destination)
+
     #Public(Common) API for receiving message
     @cherrypy.expose
     @cherrypy.tools.json_in()
     def receiveMessage(self):
+
         data = cherrypy.request.json
         return communication.receiveMessage(data)
+
+    #Public(Common) API for receiving files
+    @cherrypy.expose
+    @cherrypy.tools.json_in()
+    def receiveFile(self):
+
+        data = cherrypy.request.json
+        return communication.receiveFile(data)
+
 
 #-------------------------------------------END--------------------------------------------#
 
 
-def exit_handler():
 
-    login.signout()
-
-atexit.register(exit_handler)
 
 
 #-------------------------------------RUNS THE SERVER--------------------------------------#

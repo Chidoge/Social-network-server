@@ -50,3 +50,26 @@ def saveOnlineUsers():
     except KeyError:
 
         return 'Session Expired'
+
+
+@cherrypy.expose
+def getUserIP_PORT(destination):
+
+    #Open database
+    workingDir = os.path.dirname(__file__)
+    dbFilename = workingDir + "/db/userlist.db"
+    f = open(dbFilename,"r+")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+
+
+    #Find ip and port - Should always exist, since this method is only called when this user is saved.
+    cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = ?",[destination])
+    row = cursor.fetchall()
+
+    ip = str(row[0][0])
+    port = str(row[0][1])
+
+    info = {'ip' : ip, 'port' : port}
+
+    return info

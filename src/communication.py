@@ -7,7 +7,9 @@ import urllib2
 import sqlite3
 import time
 import Crypto
-
+import requests
+import base64
+import users
 
 #This API allows other clients to send this client a message
 @cherrypy.expose
@@ -68,29 +70,26 @@ def sendMessage(message):
         destination = cherrypy.session['chatTo']
 
         if (message == None or len(message) == 0):
-            raise cherrypy.HTTPRedirect('/chat?userUPI='+destination)
-        else :
-            #Open database
-            workingDir = os.path.dirname(__file__)
-            dbFilename = workingDir + "/db/userlist.db"
-            f = open(dbFilename,"r+")
-            conn = sqlite3.connect(dbFilename)
-            cursor = conn.cursor()
 
-            #Find ip and port - Should always exist, since this method is only called when this user is saved.
-            cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = ?",[destination])
-            row = cursor.fetchall()
-            ip = str(row[0][0])
-            port = str(row[0][1])
+            raise cherrypy.HTTPRedirect('/chat?destination='+destination)
+
+        else :
+            
+            data = users.getUserIP_PORT(destination)
+
+            ip = data['ip']
+            port = data['port']
 
             #Ping destination to see if they are online
-            pingResponse = urllib2.urlopen("http://"+ip+":"+port+"/ping?sender="+str(sender)).read()
+            url = "http://%s:%s/ping?sender=%s" % (ip,port,sender)
+            pingResponse = urllib2.urlopen(url).read()
 
             #If destination was pinged successfully
             if (pingResponse == '0'):
 
                 stamp = str(time.time())
-                url = "http://"+ip+":"+port+"/receiveMessage"
+
+                url = "http://%s:%s/receiveMessage" % (ip,port)
 
                 """BS = 16
                 message = message + (BS - len(message) % BS) * chr(BS - len(message) % BS) 
@@ -108,7 +107,7 @@ def sendMessage(message):
                 if (response[0] == '0'):
                     #Keep them on chat page
                     saveMessage(message,sender,destination)
-                    raise cherrypy.HTTPRedirect('/chat?otherUser='+destination)
+                    raise cherrypy.HTTPRedirect('/chat?destination='+destination)
                 else:
 
                     print 'Code error : ' + response[0]
@@ -120,7 +119,7 @@ def sendMessage(message):
 
 
 @cherrypy.expose
-def getChatPage(otherUser):
+def getChatPage(destination):
 
     #Check session
     try:
@@ -131,21 +130,21 @@ def getChatPage(otherUser):
         f = open(filename,"r")
         page = f.read()
         f.close()
-        cherrypy.session['chatTo'] = otherUser
+        cherrypy.session['chatTo'] = destination
 
         dbFilename = workingDir + "/db/messages.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT Message,Sender FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[otherUser,username,username,otherUser])
+        cursor.execute("SELECT Message,Sender FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,username,username,destination])
 
         rows = cursor.fetchall()
 
 
         for row in rows:
 
-            if (str(row[1]) == otherUser):
+            if (str(row[1]) == destination):
                 page += '<div class = "chat friend">'
                 page += '<div class = "user-photo" src = "/static/html/anon.png"></div>'
                 page += '<p class = "chat-message">' + str(row[0]) + '</p>'
@@ -172,15 +171,10 @@ def getChatPage(otherUser):
         return 'Session expired'
 
 
-#Public Ping API for checking if this client is online
-@cherrypy.expose
-def ping(sender):
 
-    return '0'
 
 @cherrypy.expose
 def saveMessage(message,sender,destination):
-
 
     workingDir = os.path.dirname(__file__)
     dbFilename = workingDir + "/db/messages.db"
@@ -196,13 +190,66 @@ def saveMessage(message,sender,destination):
     conn.close()
 
 
+@cherrypy.expose
+def sendFile(destination):
+
+    #Check for user session
+    try:
+        sender = cherrypy.session['username']
+
+        #Open image for sending
+        workingDir = os.path.dirname(__file__)
+        filename = workingDir + "/serve/serverFiles/blaze.mp3"
+        img = open(filename, 'rb')
+        read = img.read()
+
+        data = users.getUserIP_PORT(destination)
+        ip = data['ip']
+        port = data['port']
+
+        encodedFile = base64.b64encode(read)
+
+        stamp = str(time.time())
+        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : 'blaze.mp3' ,'content_type' : 'audio/mpeg','stamp' :stamp}
+        data = json.dumps(output_dict)
+
+
+        url = "http://%s:%s/receiveFile" % (ip,port)
+
+        try:
+            req = urllib2.Request(url,data,{'Content-Type':'application/json'})
+            response = urllib2.urlopen(req).read()
+
+            raise cherrypy.HTTPRedirect('/')
+
+        except urllib2.URLError, exception:
+            return 'File could not be sent'
+
+    except KeyError:
+        return 'Session Expired'
+
 
 @cherrypy.expose
 def receiveFile(data):
-	sender = data['sender']
-	destination = data['destination']
-	filee = data['file']
-	filename = data['filename']
-	content_type = data['content_type']
-	stamp = str(time.time())
+
+    workingDir = os.path.dirname(__file__)
+    sender = data['sender']
+    destination = data['destination']
+    fileIn = data['file']
+    filenameIn = data['filename']
+    content_type = data['content_type']
+    stamp = str(data['stamp'])
+    print 'sender : ' + sender
+
+    #Open image for sending
+    workingDir = os.path.dirname(__file__)
+
+    filename = workingDir + "/serve/serverFiles/" + str(filenameIn)
+
+    decodedFile = base64.decodestring(fileIn)
+    file = open(filename, 'wb')
+    file.write(decodedFile)
+
+    return '0'
+
 	

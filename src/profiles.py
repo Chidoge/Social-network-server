@@ -55,13 +55,13 @@ def showUserPage():
         #User list starts after 4th white space
         for i in range(5,len(users)) :
 
-            otherUser= users[i].split(',')[0]
+            destination= users[i].split(',')[0]
             #No need to show current user their own profile
-            if (otherUser != username):
-                page += '<p>' + otherUser + '</p>'
-                page += '<form action ="/viewProfile?otherUser=' + otherUser+'" method="post">'
+            if (destination != username):
+                page += '<p>' + destination + '</p>'
+                page += '<form action ="/viewProfile?destination=' + destination+'" method="post">'
                 page += '<button type ="submit">View Profile</button></form>'
-                page += '<form action ="/chat?otherUser=' + otherUser +'"method="post">'
+                page += '<form action ="/chat?destination=' + destination +'"method="post">'
                 page += '<button type ="submit">Send Message</button></form>'
 
 
@@ -76,9 +76,16 @@ def showUserPage():
         page = page.replace('DESCRIPTION_HERE',description)
         page = page.replace('LOCATION_HERE',location)
         page = page.replace('PICTURE_HERE',picture)
-
-
-
+        """ #Chat
+        filename = workingDir + "/html/chatbox.html"
+        f = open(filename,"r")
+        page += f.read()
+        f.close
+                #Chat
+        filename = workingDir + "/html/chatbox-bottom.html"
+        f = open(filename,"r")
+        page += f.read()
+        f.close"""
         return page 
         
     #If not logged in and trying to access userpage, bring them back to the default page
@@ -118,13 +125,13 @@ def saveEdit(name=None,position=None,description=None,location=None,picture=None
 
 #Call other node's getProfile
 @cherrypy.expose
-def viewProfile(otherUser):
+def viewProfile(destination):
 
     #Check session
     try:
 
         username = cherrypy.session['username']
-        profile_username = otherUser
+        profile_username = destination
 
         #Open database
         workingDir = os.path.dirname(__file__)
