@@ -74,63 +74,75 @@ def sendMessage(message):
             raise cherrypy.HTTPRedirect('/chatUser?destination='+destination)
 
         else :
-            
-            data = users.getUserIP_PORT(destination)
 
+            #Get IP and PORT of destination
+            data = users.getUserIP_PORT(destination)
             ip = data['ip']
             port = data['port']
 
-            #Ping destination to see if they are online
-            url = "http://%s:%s/ping?sender=%s" % (ip,port,sender)
-            pingResponse = urllib2.urlopen(url).read()
+            try:
+                #Ping destination to see if they are online
+                url = "http://%s:%s/ping?sender=%s" % (ip,port,sender)
+                pingResponse = urllib2.urlopen(url).read()
+
+            except urllib2.URLError, exception:
+                return 'Could not ping'
+
 
             #If destination was pinged successfully
             if (pingResponse == '0'):
 
+                #Put compulsory arguments into output dictionary, then json encode it
                 stamp = str(time.time())
+                output_dict = {'sender' :sender,'message':message,'stamp':stamp,'destination':destination}
+                data = json.dumps(output_dict)
 
+                #Construct the URL for calling the /receiveFile API of the destination
                 url = "http://%s:%s/receiveMessage" % (ip,port)
 
-                """BS = 16
-                message = message + (BS - len(message) % BS) * chr(BS - len(message) % BS) 
-            	iv = Random.new().read(AES.block_size)
-            	cipher = AES.new('41fb5b5ae4d57c5ee528adb078ac3b2e', AES.MODE_CBC, iv)
-            	message = base64.b64encode(iv + cipher.encrypt(message))"""
+                try:
+                    #Put json encoded object into http header
+                    req = urllib2.Request(url,data,{'Content-Type':'application/json'})
+                    response = urllib2.urlopen(req).read()
 
-                output_dict = {'sender' :sender,'message':message,'stamp':stamp,'destination':destination,'encryption':'0'}  	
-                data = json.dumps(output_dict) 
+                    if (response[0] == '0'):
+                        #Keep them on chat page
+                        saveMessage(message,sender,destination)
+                        raise cherrypy.HTTPRedirect('/showUserPage')
+                    else:
 
-                req = urllib2.Request(url,data,{'Content-Type':'application/json'})
+                        print 'Code error : ' + response[0]
+                        return 'Message not sent but ping response is 0'
 
-                response = urllib2.urlopen(req).read()
 
-                if (response[0] == '0'):
-                    #Keep them on chat page
-                    saveMessage(message,sender,destination)
-                    raise cherrypy.HTTPRedirect('/showUserPage')
-                else:
+                except urllib2.URLError, exception:
 
-                    print 'Code error : ' + response[0]
-                    return 'Message not sent but ping response is 0'
+                    return 'Message could not be sent'
+
 
     except KeyError:
 
         return 'Session expired'
 
 
+#Function which locally stores the messages being sent by current user
 @cherrypy.expose
 def saveMessage(message,sender,destination):
 
+    #Prepare database for message storing
     workingDir = os.path.dirname(__file__)
     dbFilename = workingDir + "/db/messages.db"
     f = open(dbFilename,"r+")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
 
+    #Create stamp
     stamp = str(time.time())
 
+    #Insert message row
     cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp) VALUES (?,?,?,?)",[sender,destination,message,stamp])
-
+    
+    #Save changes
     conn.commit()
     conn.close()
 
@@ -139,7 +151,7 @@ def saveMessage(message,sender,destination):
 def sendFile(filename):
 
 
-    #Check for user session
+    #Check user session
     try:
         sender = cherrypy.session['username']
         destination = cherrypy.session['destination']
@@ -147,34 +159,45 @@ def sendFile(filename):
         #Open image for sending
         workingDir = os.path.dirname(__file__)
         newfilename = workingDir + "/serve/serverFiles/" + str(filename)
-        img = open(newfilename, 'rb')
+        image = open(newfilename, 'rb')
+        imageRead = image.read()
 
-        read = img.read()
+        #Encode image in base 64
+        encodedFile = base64.b64encode(imageRead)
 
+        #Get IP and PORT of destination
         data = users.getUserIP_PORT(destination)
         ip = data['ip']
         port = data['port']
 
-        encodedFile = base64.b64encode(read)
+        #Guess the mimetype of the file that we're sending
+        content_type = mimetypes.guess_type(newfilename, strict=True)
 
+        #Add a stamp to the file
         stamp = str(time.time())
-        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : filename ,'content_type' : 'image/jpg','stamp' :stamp}
+
+        #Put compulsory arguments into output dictionary, then json encode it
+        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : filename ,'content_type' : content_type,'stamp' :stamp}
         data = json.dumps(output_dict)
 
-
+        #Construct the URL for calling the /receiveFile API of the destination
         url = "http://%s:%s/receiveFile" % (ip,port)
-        print url
+
+        #Attempt to call the API, if fails, return error
         try:
+            #Put json encoded object into http header
             req = urllib2.Request(url,data,{'Content-Type':'application/json'})
             response = urllib2.urlopen(req).read()
-
             raise cherrypy.HTTPRedirect('/')
 
         except urllib2.URLError, exception:
+
             return 'File could not be sent'
 
+
     except KeyError:
-        return 'Session Expired'
+
+        raise cherrypy.HTTPRedirect('/')
 
 
 @cherrypy.expose
@@ -200,4 +223,62 @@ def receiveFile(data):
 
     return '0'
 
-	
+
+@cherrypy.expose
+def getChatPage(page,sender,destination):
+
+    #Add chat divisions to page
+    workingDir = os.path.dirname(__file__)
+    filename = workingDir + "/html/chatbox.html"
+    f = open(filename,"r")
+    page += f.read()
+    f.close
+    page += '<div id = "chatlogs" class="chatlogs">'
+
+    #Grab profile picture of destination to put into chat box
+    dbFilename = workingDir + "/db/userinfo.db"
+    f = open(dbFilename,"r")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+    cursor.execute("SELECT Picture FROM Profile WHERE UPI = ?",[destination])
+    row = cursor.fetchall()
+
+    #Use anon picture if they dont have a picture
+    if (len(row) != 0):
+        picture = str(row[0][0])
+    else:
+        picture = '/static/css/anon.png'
+
+
+    #Compile the chat history between sender and destination in order
+    dbFilename = workingDir + "/db/messages.db"
+    f = open(dbFilename,"r")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+    cursor.execute("SELECT Message,Sender FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
+    rows = cursor.fetchall()
+
+
+    for row in rows:
+
+        if (str(row[1]) == destination):
+            page += '<div class = "chat friend">'
+            page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
+            page += '<div class = "chat-message">' + str(row[0]) + '</div>'
+            page += '</div>'
+
+        else:
+            page += '<div class = "chat self">'
+            #page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
+            page += '<div class = "chat-message">' + str(row[0]) + '</div>'
+            page += '</div>'
+
+
+    page += '</div>'
+    filename = workingDir + "/html/chatbox-bottom.html"
+    f = open(filename,"r")
+    page += f.read()
+    f.close
+
+    return page   
+

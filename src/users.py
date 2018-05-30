@@ -5,6 +5,7 @@ import mimetypes
 import os
 import urllib2
 import sqlite3
+import communication
 
 #Shows main page after login
 @cherrypy.expose
@@ -16,17 +17,15 @@ def showUserPage():
         username = cherrypy.session['username']
 
 
-        #Get working directory to find html and database files
+        #Get base html for page
         workingDir = os.path.dirname(__file__)
-                
-        #Serve html to page
         filename = workingDir + "/html/userpage.html"
         f = open(filename,"r")
         page = f.read()
         f.close()
 
         #Read database
-        dbFilename = workingDir + "/db/profiles.db"
+        dbFilename = workingDir + "/db/userinfo.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
@@ -55,9 +54,11 @@ def showUserPage():
             destination = users[i].split(',')[0]
             #No need to show current user their own profile
             if (destination != username):
-                page += '<p>' + destination + '</p>'
+                page += '<p>' + destination + '</p>' 
                 page += '<form action ="/chatUser?destination=' + destination +'"method="post">'
                 page += '<button type="submit">Chat</button></form>'
+                page += '<form action ="/viewProfile?destination=' + destination + '"method="post">'
+                page += '<button type="submit">View Profile</button></form>'
 
         page += '</div>'
 
@@ -75,78 +76,44 @@ def showUserPage():
         destination = cherrypy.session.get('destination','')
 
 
-        #
         if (destination != ''):
+            page = communication.getChatPage(page,username,destination)
 
-            filename = workingDir + "/html/chatbox.html"
-            f = open(filename,"r")
-            page += f.read()
-            f.close
-
-            page += '<div id = "chatlogs" class="chatlogs">'
-
-            dbFilename = workingDir + "/db/messages.db"
-            f = open(dbFilename,"r")
-            conn = sqlite3.connect(dbFilename)
-            cursor = conn.cursor()
-
-            cursor.execute("SELECT Message,Sender FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,username,username,destination])
-
-            rows = cursor.fetchall()
-
-
-            for row in rows:
-
-                if (str(row[1]) == destination):
-                    page += '<div class = "chat friend">'
-                    page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
-                    page += '<div class = "chat-message">' + str(row[0]) + '</div>'
-                    page += '</div>'
-
-                else:
-                    page += '<div class = "chat self">'
-                    #page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
-                    page += '<div class = "chat-message">' + str(row[0]) + '</div>'
-                    page += '</div>'
-
-            page += '</div>'
-            filename = workingDir + "/html/chatbox-bottom.html"
-            f = open(filename,"r")
-            page += f.read()
-            f.close        
-
+        page = page.replace('DESTINATION_HERE',destination)
         return page 
         
     #If not logged in and trying to access userpage, bring them back to the default page
     except KeyError:
 
         raise cherrypy.HTTPRedirect('/')  
+
+
+
 @cherrypy.expose
 def saveOnlineUsers():
 
     try:
         username = cherrypy.session['username']
         #Call API to check for other online users
-        r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'])
+        r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'] + "&json=1")
         response = r.read()
         errorCode = response[0]
+        users = json.loads(response)
 
-        #Split API response using white space as tokeniser
-        users = response.split()
-            
         #Prepare database for storing online users
         workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/userlist.db"
+        dbFilename = workingDir + "/db/userinfo.db"
         f = open(dbFilename,"r+")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
         #User list starts after 4th white space
-        for i in range(5,len(users)):
-
-            userUPI= users[i].split(',')[0]
-            userIP = users[i].split(',')[2]
-            userPORT = users[i].split(',')[3]
+        for i in users:
+ 
+            userUPI= users[i]['username']
+            userIP = users[i]['ip']
+            userPORT = users[i]['port']
+            lastLogin = users[i]['lastLogin']
 
             #Search for existing user in database
             cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = ?",[userUPI])
@@ -154,9 +121,9 @@ def saveOnlineUsers():
 
             #Insert new user information if new,update existing user information
             if (len(row) == 0):
-                cursor.execute("INSERT INTO UserList(UPI,IP,PORT) VALUES (?,?,?)",[userUPI,userIP,userPORT])
+                cursor.execute("INSERT INTO UserList(UPI,IP,PORT,lastLogin) VALUES (?,?,?,?)",[userUPI,userIP,userPORT,lastLogin])
             else:
-                cursor.execute("UPDATE UserList SET IP = ?,PORT = ? WHERE UPI = ?",[userIP,userPORT,userUPI])
+                cursor.execute("UPDATE UserList SET IP = ?,PORT = ?, lastLogin = ? WHERE UPI = ?",[userIP,userPORT,lastLogin,userUPI])
 
         conn.commit()
         conn.close()
@@ -166,12 +133,13 @@ def saveOnlineUsers():
         return 'Session Expired'
 
 
+
 @cherrypy.expose
 def getUserIP_PORT(destination):
 
     #Open database
     workingDir = os.path.dirname(__file__)
-    dbFilename = workingDir + "/db/userlist.db"
+    dbFilename = workingDir + "/db/userinfo.db"
     f = open(dbFilename,"r+")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()

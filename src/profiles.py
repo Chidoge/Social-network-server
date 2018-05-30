@@ -21,7 +21,7 @@ def viewProfile(destination):
 
         #Open database
         workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/userlist.db"
+        dbFilename = workingDir + "/db/userinfo.db"
         f = open(dbFilename,"r+")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
@@ -58,7 +58,7 @@ def viewProfile(destination):
 
             #Open database and store the user profile information
             workingDir = os.path.dirname(__file__)
-            dbFilename = workingDir + "/db/profiles.db"
+            dbFilename = workingDir + "/db/userinfo.db"
             f = open(dbFilename,"r+")
             conn = sqlite3.connect(dbFilename)
             cursor = conn.cursor()
@@ -78,6 +78,7 @@ def viewProfile(destination):
             #Attempt to save the profile image from the given url.
             try:
                 urllib.urlretrieve(picture, workingDir + "/serve/serverFiles/profile_pictures/"+profile_username+".jpg")
+                cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?",["/serve/serverFiles/profile_pictures/"+profile_username+".jpg",profile_username])
             except urllib2.URLError, exception:
                 pass
 
@@ -117,12 +118,12 @@ def getProfile(data):
 
 
         #Construct URL for image
-        url = "http://" + hostIP + ":" + str(port) + "/static/serverFiles/profile_pictures/" + profile_username + ".jpg"
+        url = "http://" + hostIP + ":" + str(port) + "/static/serverFiles/profile_pictures/" + profile_username + ".png"
 
 
         #Open database for extracting profile
         workingDir = os.path.dirname(__file__) 
-        dbFilename = workingDir + "/db/profiles.db"
+        dbFilename = workingDir + "/db/userinfo.db"
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
@@ -167,7 +168,7 @@ def saveEdit(name,position,description,location,picture):
 
         #Prepare database for writing to
         workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/profiles.db"
+        dbFilename = workingDir + "/db/userinfo.db"
         f = open(dbFilename,"r+")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()

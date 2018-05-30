@@ -21,7 +21,6 @@ import os
 import urllib2
 import sqlite3
 import socket
-import atexit
 
 #Student defined files
 import profiles
