@@ -43,7 +43,7 @@ def receiveMessage(data):
 
             
             
-        cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp) VALUES (?,?,?,?)",[sender,destination,message,stamp])
+        cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,'0'])
 
         conn.commit()
         conn.close()
@@ -106,7 +106,7 @@ def sendMessage(message):
 
                     if (response[0] == '0'):
                         #Keep them on chat page
-                        saveMessage(message,sender,destination,stamp)
+                        saveMessage(message,sender,destination,stamp,'0')
                         raise cherrypy.HTTPRedirect('/showUserPage')
                     else:
 
@@ -126,7 +126,7 @@ def sendMessage(message):
 
 #Function which locally stores the messages being sent by current user
 @cherrypy.expose
-def saveMessage(message,sender,destination,stamp):
+def saveMessage(message,sender,destination,stamp,isFile):
 
     #Prepare database for message storing
     workingDir = os.path.dirname(__file__)
@@ -136,7 +136,7 @@ def saveMessage(message,sender,destination,stamp):
     cursor = conn.cursor()
 
     #Insert message row
-    cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp) VALUES (?,?,?,?)",[sender,destination,message,stamp])
+    cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,isFile])
     
     #Save changes
     conn.commit()
@@ -153,11 +153,15 @@ def sendFile(fileData):
         sender = cherrypy.session['username']
         destination = cherrypy.session['destination']
 
-        extension = mimetypes.guess_extension(str(fileData.type))
+        #Add a stamp to the file and use for file name
+        stamp = str(int(time.time()))
+
+        #Guess an extension for the file type
+        extension = mimetypes.guess_extension(str(fileData.type),strict=True)
 
         #Prepare file path and store on server
         workingDir = os.path.dirname(__file__)
-        newfilename = workingDir + "/serve/serverFiles/" + str(fileData.name) + extension
+        newfilename = workingDir + "/serve/serverFiles/sent_files/" + sender + stamp + extension
 
         if fileData.file: 
             with file(newfilename, 'wb') as outfile:
@@ -175,13 +179,11 @@ def sendFile(fileData):
         port = data['port']
 
         #Guess the mimetype of the file that we're sending
-        content_type = mimetypes.guess_type(newfilename, strict=True)
+        content_type = mimetypes.guess_type(imageRead, strict=True)
 
-        #Add a stamp to the file
-        stamp = str(time.time())
 
         #Put compulsory arguments into output dictionary, then json encode it
-        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : fileData.name + extension ,'content_type' : content_type,'stamp' :stamp}
+        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : sender+stamp+ extension ,'content_type' : content_type,'stamp' :stamp}
         data = json.dumps(output_dict)
 
         #Construct the URL for calling the /receiveFile API of the destination
@@ -192,6 +194,7 @@ def sendFile(fileData):
             #Put json encoded object into http header
             req = urllib2.Request(url,data,{'Content-Type':'application/json'})
             response = urllib2.urlopen(req).read()
+            saveMessage('/static/serverFiles/sent_files/'+sender+stamp+extension,sender,destination,stamp,'1')
             raise cherrypy.HTTPRedirect('/')
 
         except urllib2.URLError, exception:
@@ -213,16 +216,17 @@ def receiveFile(data):
     fileIn = data['file']
     filenameIn = data['filename']
     content_type = data['content_type']
-    stamp = str(data['stamp'])
+    stamp = str(int(data['stamp']))
 
     #Open image for sending
     workingDir = os.path.dirname(__file__)
 
-    filename = workingDir + "/serve/serverFiles/" + str(filenameIn)
+    filename = workingDir + "/serve/serverFiles/sent_files/" + str(filenameIn)
     decodedFile = base64.decodestring(fileIn)
     file = open(filename, 'wb')
     file.write(decodedFile)
 
+    saveMessage('/static/serverFiles/sent_files/'+str(filenameIn),sender,destination,stamp,'1')
     return '0'
 
 
@@ -235,6 +239,7 @@ def getChatPage(page,sender,destination):
     f = open(filename,"r")
     page += f.read()
     f.close
+
     page += '<div id = "chatlogs" class="chatlogs">'
 
     #Grab profile picture of destination to put into chat box
@@ -263,7 +268,7 @@ def getChatPage(page,sender,destination):
     f = open(dbFilename,"r")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
-    cursor.execute("SELECT Message,Sender FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
+    cursor.execute("SELECT Message,Sender,isFile FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
     rows = cursor.fetchall()
 
 
@@ -272,13 +277,19 @@ def getChatPage(page,sender,destination):
         if (str(row[1]) == destination):
             page += '<div class = "chat friend">'
             page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
-            page += '<div class = "chat-message">' + str(row[0]) + '</div>'
+            if (str(row[2]) == '1'):
+                page +=  addEmbeddedViewer(str(row[0]))
+            else: 
+                page += '<div class = "chat-message">' + str(row[0]) + '</div>'
             page += '</div>'
 
         else:
             page += '<div class = "chat self">'
             #page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
-            page += '<div class = "chat-message">' + str(row[0]) + '</div>'
+            if (str(row[2]) == '1'):
+                page +=  addEmbeddedViewer(str(row[0]))
+            else: 
+                page += '<div class = "chat-message">' + str(row[0]) + '</div>'
             page += '</div>'
 
 
@@ -289,6 +300,14 @@ def getChatPage(page,sender,destination):
     f.close
 
     return page   
+
+@cherrypy.expose
+def addEmbeddedViewer(fileSource):
+
+
+    page = '<div class = "chat-message-image"><img src="' + fileSource + '">' +'</div>'
+
+    return page
 
 
 @cherrypy.expose

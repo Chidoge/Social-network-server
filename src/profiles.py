@@ -79,8 +79,12 @@ def viewProfile(destination):
 
                 if ('http' not in picture and '/' in picture):
                     picture = 'http://'+ip+":"+port+picture
+
+                elif('http' in picture):
+                    pass
                 else:
                     picture = 'None'
+
                 #Insert new user information if new, otherwise update existing profile.
                 #TODO: ADD lastUpdated implementation
                 if (len(row) == 0):

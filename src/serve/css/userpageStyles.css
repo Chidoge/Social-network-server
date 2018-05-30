@@ -104,19 +104,15 @@ button:hover {
 
 }
 
-.crop {
-    width : 200px;
-    height: 200px;
-    overflow: hidden;
-}
 
 .crop img {
-    width: 400px;
-    height: 400px;
-    margin: -50px 0 0 -50px;
+    width :auto;
+    height:auto;
+    max-width: 400px;
+    max-height: 400px;
 }
 
-/* Add Zoom Animation */
+
 .animate {
     -webkit-animation: animatezoom 0.6s;
     animation: animatezoom 0.6s
@@ -201,14 +197,12 @@ button:hover {
     border-radius: 50%;
 }
 
-.friend .user-photo {
 
-}
-
-.self .user-photo {
+/* Currently un-needed */
+/*.self .user-photo {
     position : sticky;
     left : 1000px;
-}
+}*/
 
 .chat .chat-message {
 
@@ -217,19 +211,55 @@ button:hover {
     max-width: 300px;
     word-wrap:break-word;
     display:inline-block;
-    padding: 15px;
+    padding: 12.5px;
     margin: 5px 10px 0;
     border-radius: 10px;
     color: #fff;
     font-size: 20px;
 }
 
+.chat .chat-message-image {
+    position : sticky;
+    width: auto;
+    max-width: 300px;
+    word-wrap:break-word;
+    display:inline-block;
+    margin: 5px 10px 0;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 20px;
+}
+
+.chat-message-image img {
+    display: block;
+    max-width : 300px;
+    max-height : 300px;
+    width: auto;
+    height: auto;
+    border-radius:  10px;
+}
+
+
 .friend .chat-message {
 
     background: #d3d3d3;
 }
 
+.friend .chat-message-image {
+    background: #d3d3d3;
+}
+
 .self .chat-message {
+    margin-top : 0;
+    margin-left : auto;
+    margin-right : 1%;
+    margin-bottom: auto;
+    order: -1;
+    background: #3090C7;
+
+}
+
+.self .chat-message-image {
     margin-top : 0;
     margin-left : auto;
     margin-right : 1%;
