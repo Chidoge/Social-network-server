@@ -41,17 +41,15 @@ def showUserPage():
 
 
         #Call API to check for other online users
-        r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'])
+        r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'] + "&json=1")
         response = r.read()
+        users = json.loads(response)
 
-        #Split API response using white space as tokeniser
-        users = response.split()
 
         page += '<div class = "sidebar">'
-        #User list starts after 4th white space
-        for i in range(5,len(users)) :
-
-            destination = users[i].split(',')[0]
+        for i in users:
+ 
+            destination= users[i]['username']
             #No need to show current user their own profile
             if (destination != username):
                 page += '<p>' + destination + '</p>' 
@@ -107,7 +105,6 @@ def saveOnlineUsers():
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
-        #User list starts after 4th white space
         for i in users:
  
             userUPI= users[i]['username']

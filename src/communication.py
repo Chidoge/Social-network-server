@@ -91,13 +91,13 @@ def sendMessage(message):
             #If destination was pinged successfully
             if (pingResponse == '0'):
 
+                #Construct the URL for calling the /receiveFile API of the destination
+                url = "http://%s:%s/receiveMessage" % (ip,port)
+
                 #Put compulsory arguments into output dictionary, then json encode it
                 stamp = str(time.time())
                 output_dict = {'sender' :sender,'message':message,'stamp':stamp,'destination':destination}
                 data = json.dumps(output_dict)
-
-                #Construct the URL for calling the /receiveFile API of the destination
-                url = "http://%s:%s/receiveMessage" % (ip,port)
 
                 try:
                     #Put json encoded object into http header
@@ -106,7 +106,7 @@ def sendMessage(message):
 
                     if (response[0] == '0'):
                         #Keep them on chat page
-                        saveMessage(message,sender,destination)
+                        saveMessage(message,sender,destination,stamp)
                         raise cherrypy.HTTPRedirect('/showUserPage')
                     else:
 
@@ -126,7 +126,7 @@ def sendMessage(message):
 
 #Function which locally stores the messages being sent by current user
 @cherrypy.expose
-def saveMessage(message,sender,destination):
+def saveMessage(message,sender,destination,stamp):
 
     #Prepare database for message storing
     workingDir = os.path.dirname(__file__)
@@ -134,9 +134,6 @@ def saveMessage(message,sender,destination):
     f = open(dbFilename,"r+")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
-
-    #Create stamp
-    stamp = str(time.time())
 
     #Insert message row
     cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp) VALUES (?,?,?,?)",[sender,destination,message,stamp])
@@ -147,20 +144,28 @@ def saveMessage(message,sender,destination):
 
 
 @cherrypy.expose
-def sendFile(filename):
+def sendFile(fileData):
 
 
     #Check user session
     try:
+
         sender = cherrypy.session['username']
         destination = cherrypy.session['destination']
 
-        #Open image for sending
+        extension = mimetypes.guess_extension(str(fileData.type))
+
+        #Prepare file path and store on server
         workingDir = os.path.dirname(__file__)
-        newfilename = workingDir + "/serve/serverFiles/" + str(filename)
+        newfilename = workingDir + "/serve/serverFiles/" + str(fileData.name) + extension
+
+        if fileData.file: 
+            with file(newfilename, 'wb') as outfile:
+                outfile.write(fileData.file.read())
+
+
         image = open(newfilename, 'rb')
         imageRead = image.read()
-
         #Encode image in base 64
         encodedFile = base64.b64encode(imageRead)
 
@@ -176,7 +181,7 @@ def sendFile(filename):
         stamp = str(time.time())
 
         #Put compulsory arguments into output dictionary, then json encode it
-        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : filename ,'content_type' : content_type,'stamp' :stamp}
+        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : fileData.name + extension ,'content_type' : content_type,'stamp' :stamp}
         data = json.dumps(output_dict)
 
         #Construct the URL for calling the /receiveFile API of the destination
@@ -214,7 +219,6 @@ def receiveFile(data):
     workingDir = os.path.dirname(__file__)
 
     filename = workingDir + "/serve/serverFiles/" + str(filenameIn)
-
     decodedFile = base64.decodestring(fileIn)
     file = open(filename, 'wb')
     file.write(decodedFile)
@@ -241,7 +245,6 @@ def getChatPage(page,sender,destination):
     cursor.execute("SELECT Picture FROM Profile WHERE UPI = ?",[destination])
     row = cursor.fetchone()
 
-    print str(row)
     #Use anon picture if they dont have a picture
     if (row == None):
 
@@ -286,4 +289,20 @@ def getChatPage(page,sender,destination):
     f.close
 
     return page   
+
+
+@cherrypy.expose
+def acknowledge(data):
+
+    try:
+        sender = data['sender']
+        stamp = data['stamp']
+        hashingStandard = str(data['hashing'])
+        dataHash = data['hash']
+
+        if (hashingStandard == '0'):
+            pass
+
+    except KeyError:
+        return '1 Missing Compulsory Field'
 

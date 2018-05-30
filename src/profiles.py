@@ -5,6 +5,8 @@ import os
 import urllib
 import urllib2
 import sqlite3
+import users
+import time
 
 port = 15010
 
@@ -47,46 +49,66 @@ def viewProfile(destination):
 
             #Load json encoded profile. Give 4 second for other side to respond.
             data = urllib2.urlopen(req,timeout= 4).read()
-            loaded = json.loads(data)
 
-            #Get relevant information from the profile.
-            name = loaded.get('fullname','')
-            position = loaded.get('position','')
-            description = loaded.get('description','')
-            location = loaded.get('location','')
-            picture = loaded.get('picture','None')
-
-            #Open database and store the user profile information
-            workingDir = os.path.dirname(__file__)
-            dbFilename = workingDir + "/db/userinfo.db"
-            f = open(dbFilename,"r+")
-            conn = sqlite3.connect(dbFilename)
-            cursor = conn.cursor()
-
-            #Check if user profile exists in this database file
-            cursor.execute("SELECT Name FROM Profile WHERE UPI = ?",[profile_username])
-            row = cursor.fetchall()
-
-            #Insert new user information if new, otherwise update existing profile.
-            #TODO: ADD lastUpdated implementation
-            if (len(row) == 0):
-                cursor.execute("INSERT INTO Profile(Name,Position,Description,Location,Picture) VALUES (?,?,?,?)",[name,position,description,location,picture])
-            else:
-                cursor.execute("UPDATE Profile SET Name = ?,Position = ?,Description = ?,Location = ?,Picture = ? WHERE UPI = ?",[name,position,description,location,picture,profile_username])
-
-
-            #Attempt to save the profile image from the given url.
+            #Make sure object being returned is a json object
             try:
-                urllib.urlretrieve(picture, workingDir + "/serve/serverFiles/profile_pictures/"+profile_username+".jpg")
-                cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?",["/serve/serverFiles/profile_pictures/"+profile_username+".jpg",profile_username])
-            except urllib2.URLError, exception:
-                pass
 
-            #Save database changes
-            conn.commit()
-            conn.close()
+                loaded = json.loads(data)
+                #Get relevant information from the profile.
+                name = loaded.get('fullname','')
+                position = loaded.get('position','')
+                description = loaded.get('description','')
+                location = loaded.get('location','')
+                lastUpdated = loaded.get('lastUpdated','0')
+                picture = str(loaded.get('picture','None'))
+
+                #Open database and store the user profile information
+                workingDir = os.path.dirname(__file__)
+                dbFilename = workingDir + "/db/userinfo.db"
+                f = open(dbFilename,"r+")
+                conn = sqlite3.connect(dbFilename)
+                cursor = conn.cursor()
+
+                #Check if user profile exists in this database file
+                cursor.execute("SELECT Name FROM Profile WHERE UPI = ?",[profile_username])
+                row = cursor.fetchall()
+
+                userInfo = users.getUserIP_PORT(profile_username)
+                ip = userInfo['ip']
+                port = userInfo['port']
+
+                if ('http' not in picture and '/' in picture):
+                    picture = 'http://'+ip+":"+port+picture
+                else:
+                    picture = 'None'
+                #Insert new user information if new, otherwise update existing profile.
+                #TODO: ADD lastUpdated implementation
+                if (len(row) == 0):
+                    cursor.execute("INSERT INTO Profile(UPI,Name,Position,Description,Location,Picture,lastUpdated) VALUES (?,?,?,?,?,?,?)",[profile_username,name,position,description,location,picture,lastUpdated])
+                else:
+                    cursor.execute("UPDATE Profile SET UPI = ?,Name = ?,Position = ?,Description = ?,Location = ?,Picture = ?, lastUpdated = ? WHERE UPI = ?",[profile_username,name,position,description,location,picture,lastUpdated,profile_username])
+
+
+                if ('http' in picture):
+                    #Attempt to save the profile image from the given url.
+                    try:
+                        urllib.urlretrieve(picture, workingDir + "/serve/serverFiles/profile_pictures/"+profile_username+".jpg")
+                        cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?",["/static/serverFiles/profile_pictures/"+profile_username+".jpg",profile_username])
+                    except urllib2.URLError, exception:
+                        cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?",['None',profile_username])
+
+                #Save database changes
+                conn.commit()
+                conn.close()
+
+                return data
+
+            except ValueError:
+
+                return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
+
             
-            return data
+
 
         #In case API call fails.
         except urllib2.URLError, exception:
@@ -173,14 +195,17 @@ def saveEdit(name,position,description,location,picture):
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
+        #Key for last updated profile
+        lastUpdated = time.time()
+
         #Checks if anything was uploaded, and makes sure that it is an image(.png and .jpg only supported currently).
         #Then update the profile.
         if (picture != ''):
             if (picture.endswith('.jpg') or picture.endswith('.png')):
                 picture = "/static/serverFiles/profile_pictures/" + picture
-                cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,Picture = ? WHERE UPI = ?",[name,position,description,location,picture,username])
+                cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,Picture = ?,lastUpdated = ? WHERE UPI = ?",[name,position,description,location,picture,lastUpdated,username])
         else:
-            cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ?  WHERE UPI = ?",[name,position,description,location,username])
+            cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ?,lastUpdated = ? WHERE UPI = ?",[name,position,description,location,lastUpdated,username])
 
 
         #Save database changes and return to userpage

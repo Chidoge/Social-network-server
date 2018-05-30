@@ -181,9 +181,9 @@ class MainApp(object):
 
     #Calls other node's /receiveFile API
     @cherrypy.expose
-    def sendFile(self,filename):
-        if (filename != ''):
-            return communication.sendFile(filename)
+    def sendFile(self,fileData):
+        if (fileData != ''):
+            return communication.sendFile(fileData)
         else:
             raise cherrypy.HTTPRedirect('/showUserPage')
 
