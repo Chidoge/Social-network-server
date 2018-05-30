@@ -54,7 +54,7 @@ def viewProfile(destination):
             position = loaded.get('position','')
             description = loaded.get('description','')
             location = loaded.get('location','')
-            picture = loaded.get('picture','')
+            picture = loaded.get('picture','None')
 
             #Open database and store the user profile information
             workingDir = os.path.dirname(__file__)
@@ -116,11 +116,6 @@ def getProfile(data):
         """For internal ip address"""
         #hostIP =socket.gethostbyname(socket.gethostname())
 
-
-        #Construct URL for image
-        url = "http://" + hostIP + ":" + str(port) + "/static/serverFiles/profile_pictures/" + profile_username + ".png"
-
-
         #Open database for extracting profile
         workingDir = os.path.dirname(__file__) 
         dbFilename = workingDir + "/db/userinfo.db"
@@ -129,9 +124,14 @@ def getProfile(data):
         cursor = conn.cursor()
 
 
+
+
         #Read database and see if requested profile exists
         cursor.execute("SELECT Name,Position,Description,Location,Picture,lastUpdated FROM Profile WHERE UPI = ?",[profile_username])
         row = cursor.fetchone()
+
+        #Construct URL for image
+        url = "http://" + hostIP + ":" + str(port) + "/" + row[4]
 
         conn.close()
 

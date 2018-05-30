@@ -48,7 +48,6 @@ def receiveMessage(data):
         conn.commit()
         conn.close()
 
-        raise cherrypy.HTTPRedirect('/showUserPage')
         return '0'
 
     except KeyError:
@@ -210,7 +209,6 @@ def receiveFile(data):
     filenameIn = data['filename']
     content_type = data['content_type']
     stamp = str(data['stamp'])
-    print 'sender : ' + sender
 
     #Open image for sending
     workingDir = os.path.dirname(__file__)
@@ -241,13 +239,20 @@ def getChatPage(page,sender,destination):
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
     cursor.execute("SELECT Picture FROM Profile WHERE UPI = ?",[destination])
-    row = cursor.fetchall()
+    row = cursor.fetchone()
 
+    print str(row)
     #Use anon picture if they dont have a picture
-    if (len(row) != 0):
-        picture = str(row[0][0])
-    else:
+    if (row == None):
+
         picture = '/static/css/anon.png'
+
+    elif (str(row[0]) == 'None'):
+
+        picture = '/static/css/anon.png'
+    else:
+        picture = str(row[0])
+
 
 
     #Compile the chat history between sender and destination in order
