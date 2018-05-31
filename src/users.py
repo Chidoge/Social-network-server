@@ -7,6 +7,7 @@ import urllib2
 import sqlite3
 import communication
 
+
 #Shows main page after login
 def showUserPage():
 
@@ -42,7 +43,7 @@ def showUserPage():
                 page += '<button type="submit">View Profile</button></form>'
                 page += '</div>'
 
-        page += '</div>'
+        page += '</div></div>'
 
         #Check if user had chat session with anyone, if so, show their chat box
         destination = cherrypy.session.get('destination','')
@@ -134,3 +135,42 @@ def setNewChatUser(destination):
     cherrypy.session['destination'] = str(destination)
 
     raise cherrypy.HTTPRedirect('/showUserPage')
+
+@cherrypy.expose
+def refreshUserList():
+
+    username = cherrypy.session['username']
+
+    #Get base html for page
+    workingDir = os.path.dirname(__file__)
+    filename = workingDir + "/html/userpage.html"
+    f = open(filename,"r")
+    #page = f.read()
+    f.close()
+
+    #Call API to check for other online users
+    r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'] + "&json=1")
+    response = r.read()
+    users = json.loads(response)
+
+    #Assemble online user list in html format.
+    page = '<div class = "sidebar">'
+    for i in users:
+
+        destination= users[i]['username']
+        #No need to show current user their own profile
+        if (destination != username):
+            page += '<div class = onlineUser>'
+            page += '<p>' +  str(destination) + '</p>' 
+            page += '<form action ="/chatUser?destination=' + str(destination) +'"method="post">'
+            page += '<button type="submit">Chat</button></form>'
+            page += '<form action ="/viewProfile?destination=' +  str(destination) + '"method="post">'
+            page += '<button type="submit">View Profile</button></form>'
+            page += '</div>'
+
+    page += '</div></div>'
+
+    output_dict = { "page" : page}
+    out = json.dumps(output_dict)
+
+    return out

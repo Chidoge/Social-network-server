@@ -113,6 +113,12 @@ class MainApp(object):
 
 
     @cherrypy.expose
+    def refreshUserList(self):
+
+        return users.refreshUserList()
+
+
+    @cherrypy.expose
     def chatUser(self,destination):
 
         users.setNewChatUser(destination)
