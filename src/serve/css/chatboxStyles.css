@@ -4,7 +4,7 @@
     height:5%;
     top:7.5%;
     text-align : center;
-    margin-left:25%;
+    margin-left:0%;
     color : #3090C7;
 }
 
@@ -13,7 +13,7 @@
     height: 72.5%;
     position :fixed;
     top : 12.5%;
-    margin-left : 25%;
+    margin-left : 0%;
     background: white;
 }
 
@@ -157,7 +157,7 @@
 
 .chat-form button {
 
-    background: #1ddced;
+    background: #3090C7;
     padding: 5px 15px;
     font-size: 20px;
     margin-left: 1%;

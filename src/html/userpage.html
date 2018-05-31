@@ -36,28 +36,34 @@
 				    </div>
 				</form>
 			</div>
-	
+	<div class = "topbar">
 		<div class = "users">
 			<h1>Online Users</h1>
 		</div>
 		
 		<div class = "topbuttons">
-			<table>
-				<th><h1>My Profile</h1></th>
+			<div style ="float:left">
 				<button onclick="document.getElementById('editProfile').style.display='block'">Edit Profile</button>
+			</div>
+			<div style = "float:right">
 				<form action = "/signout" method = "post">
 				<button type="submit">Sign out</button></form>
-			</table>
+			</div>
 		</div>
-
-	<p>Name : NAME_HERE </p>
-	<p>Position : POSITION_HERE </p>
-	<p>Description : DESCRIPTION_HERE </p>
-	<p>Location : LOCATION_HERE </p>
-
-	<div class="crop">
-    	<img src= PICTURE_HERE>
 	</div>
+	<!--<div class = "profile">
+		<th><h1>My Profile</h1></th>
+
+		<p>Name : NAME_HERE </p>
+		<p>Position : POSITION_HERE </p>
+		<p>Description : DESCRIPTION_HERE </p>
+		<p>Location : LOCATION_HERE </p>
+
+		<div class="crop">
+	    	<img src= PICTURE_HERE>
+		</div>
+	</div>-->
+
 
 
 

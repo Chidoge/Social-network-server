@@ -32,54 +32,6 @@ button:hover {
     opacity: 0.9;
 }
 
-.users {
-
-    width : 20%;
-    float : right;
-    height : 5%;
-    text-align:center;
-    font-size:10px;
-    margin-right : 0px;
-    margin-top : 1%;
-    background : white;
-    color  : #3090C7;
-}
-
-
-.sidebar {
-
-    float : right;
-    width : 20%;
-    margin-top : -30%;
-    height : 90%;
-    text-align : center;
-    position : relative;
-    overflow-y : scroll;
-    overflow-x : hidden;
-}
-
-
-.sidebar button {
-
-    position : sticky;
-    float : left;
-
-    height : 50px;
-    max-height : 50px;
-    width : 40%;
-    margin-left: 20px;
-    padding : 0px;
-
-
-}
-
-.topbuttons button {
-    position :sticky;
-    top : 0px;
-    width:12.5%;
-    height:5%;
-}
-
 
 .container {
     padding: 15px;
@@ -111,6 +63,75 @@ button:hover {
     max-width: 400px;
     max-height: 400px;
 }
+
+.topbar {
+    background : white;
+    height : 5%;
+}
+
+.topbuttons {
+    float:left;
+    margin-top:-3px;
+}
+
+.topbuttons button {
+    width:300px;
+    height:100%;
+}
+
+.profile{
+    height : 100%;
+}
+
+.users {
+
+    float : right;
+    width : 20%;
+    height : 100%;
+    word-wrap : break-word;
+    text-align : center;
+    font-size : 10px;
+    margin-right : 0px;
+    background : #3090C7;
+    color : white;
+}
+
+/*.onlineUser {
+    width:100%;
+    margin-bottom:10px;
+}
+
+.onlineUser button{
+    width : 100%;
+}*/
+
+.sidebar {
+
+    float : right;
+    width : 20%;
+    margin-top : 0%;
+    height : 90%;
+    text-align : center;
+    overflow-y : scroll;
+    overflow-x : hidden;
+}
+
+
+.sidebar button {
+
+    position : sticky;
+    float : left;
+
+    height : 50px;
+    max-height : 50px;
+    width : 40%;
+    margin-left: 20px;
+    padding : 0px;
+
+
+}
+
+
 
 
 .animate {

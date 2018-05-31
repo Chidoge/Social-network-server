@@ -52,11 +52,17 @@ def showUserPage():
             destination= users[i]['username']
             #No need to show current user their own profile
             if (destination != username):
+                page += '<div class = onlineUser>'
                 page += '<p>' + destination + '</p>' 
+                #page += '<div style ="float:left">'
                 page += '<form action ="/chatUser?destination=' + destination +'"method="post">'
                 page += '<button type="submit">Chat</button></form>'
+                #page += '</div>'
+                #page += '<div style ="float:right">'
                 page += '<form action ="/viewProfile?destination=' + destination + '"method="post">'
                 page += '<button type="submit">View Profile</button></form>'
+                #page += '</div>'
+                page += '</div>'
 
         page += '</div>'
 

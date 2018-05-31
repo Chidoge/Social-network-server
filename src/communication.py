@@ -294,7 +294,7 @@ def getChatPage(page,sender,destination):
 
 
     page += '</div>'
-    filename = workingDir + "/html/chatbox-bottom.html"
+    filename = workingDir + "/html/chatbox-bottom.html" 
     f = open(filename,"r")
     page += f.read()
     f.close
