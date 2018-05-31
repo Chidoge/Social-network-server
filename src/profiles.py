@@ -12,7 +12,6 @@ port = 15010
 
 
 #Call other node's getProfile
-@cherrypy.expose
 def viewProfile(destination):
 
     #Check session
@@ -28,11 +27,26 @@ def viewProfile(destination):
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
-        #Find ip and port - Should always exist, since this method is only called when this user is saved.
-        cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = ?",[profile_username])
-        row = cursor.fetchall()
-        ip = str(row[0][0])
-        port = str(row[0][1])
+        userInfo = users.getUserIP_PORT(profile_username)
+        ip = userInfo['ip']
+        port = userInfo['port']
+
+
+        #Check destination is online
+        try:
+            #Ping destination to see if they are online
+            url = "http://%s:%s/ping?sender=%s" % (ip,port,username)
+            pingResponse = urllib2.urlopen(url,timeout=3).read()
+
+        except urllib2.URLError, exception:
+            return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
+            raise cherrypy.HTTPRedirect('/showUserPage')
+
+        #Show error if ping response is invalid
+        if (len(pingResponse) == 0 or pingResponse[0] != '0'):
+            return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
+            raise cherrypy.HTTPRedirect('/showUserPage')
+
 
         #Construct URL for requesting profile
         url = "http://"+ip+":"+port+"/getProfile"
@@ -62,21 +76,17 @@ def viewProfile(destination):
                 lastUpdated = loaded.get('lastUpdated','0')
                 picture = str(loaded.get('picture','None'))
 
-                #Open database and store the user profile information
+                #Open database to store the user profile information
                 workingDir = os.path.dirname(__file__)
                 dbFilename = workingDir + "/db/userinfo.db"
                 f = open(dbFilename,"r+")
                 conn = sqlite3.connect(dbFilename)
                 cursor = conn.cursor()
-
-                #Check if user profile exists in this database file
-                cursor.execute("SELECT Name FROM Profile WHERE UPI = ?",[profile_username])
+                cursor.execute("SELECT * FROM Profile WHERE UPI = ? ",[profile_username])
                 row = cursor.fetchall()
 
-                userInfo = users.getUserIP_PORT(profile_username)
-                ip = userInfo['ip']
-                port = userInfo['port']
-
+                #Check if picture is relative or absolute path, and perform 
+                #necessary measures to get (or not get) the picture
                 if ('http' not in picture and '/' in picture):
                     picture = 'http://'+ip+":"+port+picture
 
@@ -111,9 +121,6 @@ def viewProfile(destination):
 
                 return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
 
-            
-
-
         #In case API call fails.
         except urllib2.URLError, exception:
 
@@ -127,7 +134,6 @@ def viewProfile(destination):
 
 
 #Allows other users to request a profile from this node
-@cherrypy.expose
 def getProfile(data):
 
     #Try block; in case the API caller didn't add the compulsory input arguments
@@ -148,9 +154,6 @@ def getProfile(data):
         f = open(dbFilename,"r")
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
-
-
-
 
         #Read database and see if requested profile exists
         cursor.execute("SELECT Name,Position,Description,Location,Picture,lastUpdated FROM Profile WHERE UPI = ?",[profile_username])
@@ -182,7 +185,6 @@ def getProfile(data):
         return '1'
 
 
-@cherrypy.expose
 def viewOwnProfile():
 
     #Check session
@@ -231,7 +233,6 @@ def viewOwnProfile():
 
 
 #Function that saves user's profile edits
-@cherrypy.expose
 def saveEdit(name,position,description,location):
     
     #Check user session
@@ -264,7 +265,6 @@ def saveEdit(name,position,description,location):
 
 
 #Updates user's profile picture
-@cherrypy.expose
 def editPicture(picture):
 
     #Check session

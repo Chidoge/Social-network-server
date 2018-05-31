@@ -12,7 +12,6 @@ import base64
 import users
 
 #This API allows other clients to send this client a message
-@cherrypy.expose
 def receiveMessage(data):
 
     #Attempt to get the compulsory fields
@@ -25,7 +24,6 @@ def receiveMessage(data):
 
         #Check if message is encrypted
         encryption = data.get('encryption','0')
-
 
         #Prepare database for storing message    
         workingDir = os.path.dirname(__file__)
@@ -52,7 +50,6 @@ def receiveMessage(data):
 
 
 #Calls the destination's /receiveMessage API to send a message to them
-@cherrypy.expose
 def sendMessage(message):
 
 
@@ -62,6 +59,7 @@ def sendMessage(message):
         destination = cherrypy.session['destination']
         stamp = str(time.time())
 
+        #Make sure user is typing in a message(cannot just be blank spaces)
         if (message == None or len(message) == 0):
 
             raise cherrypy.HTTPRedirect('/chatUser?destination='+destination)
@@ -73,22 +71,22 @@ def sendMessage(message):
             ip = data['ip']
             port = data['port']
 
+
+            #Check destination is online
             try:
                 #Ping destination to see if they are online
                 url = "http://%s:%s/ping?sender=%s" % (ip,port,sender)
                 pingResponse = urllib2.urlopen(url,timeout=3).read()
 
             except urllib2.URLError, exception:
-                saveError(sender,destination,stamp)
+                saveErrorMessage(sender,destination,stamp)
                 raise cherrypy.HTTPRedirect('/showUserPage')
 
             #Show error if ping response is invalid
             if (len(pingResponse) == 0 or pingResponse[0] != '0'):
-                saveError(sender,destination,stamp)
+                saveErrorMessage(sender,destination,stamp)
                 raise cherrypy.HTTPRedirect('/showUserPage')
 
-
-            #If no error, carry on
 
             #Construct the URL for calling the /receiveFile API of the destination
             url = "http://%s:%s/receiveMessage" % (ip,port)
@@ -122,7 +120,6 @@ def sendMessage(message):
 
 
 #Function which locally stores the messages being sent by current user
-@cherrypy.expose
 def saveMessage(message,sender,destination,stamp,isFile):
 
     #Prepare database for message storing
@@ -140,8 +137,8 @@ def saveMessage(message,sender,destination,stamp,isFile):
     conn.close()
 
 
+
 #Used to send a file which is uploaded using html file upload
-@cherrypy.expose
 def sendFile(fileData):
 
 
@@ -177,6 +174,23 @@ def sendFile(fileData):
         data = users.getUserIP_PORT(destination)
         ip = data['ip']
         port = data['port']
+
+
+        #Check if user is online
+        try:
+            #Ping destination to see if they are online
+            url = "http://%s:%s/ping?sender=%s" % (ip,port,sender)
+            pingResponse = urllib2.urlopen(url,timeout=3).read()
+
+        except urllib2.URLError, exception:
+            saveErrorFile(sender,destination,stamp)
+            raise cherrypy.HTTPRedirect('/showUserPage')
+
+        #Show error if ping response is invalid
+        if (len(pingResponse) == 0 or pingResponse[0] != '0'):
+            saveErrorFile(sender,destination,stamp)
+            raise cherrypy.HTTPRedirect('/showUserPage')
+
 
         #Guess the mimetype of the file to send
         content_type = mimetypes.guess_type(imageRead, strict=True)
@@ -214,31 +228,40 @@ def sendFile(fileData):
 
 
 
-
-@cherrypy.expose
+#API for receiving files sent by other nodes
 def receiveFile(data):
 
-    workingDir = os.path.dirname(__file__)
-    sender = data['sender']
-    destination = data['destination']
-    fileIn = data['file']
-    filenameIn = data['filename']
-    content_type = data['content_type']
-    stamp = str(int(data['stamp']))
 
-    #Open image for sending
-    workingDir = os.path.dirname(__file__)
+    #Attempt to get compulsory fields
+    try:
+        sender = data['sender']
+        destination = data['destination']
+        fileIn = data['file']
+        filenameIn = data['filename']
+        content_type = data['content_type']
+        stamp = str(int(data['stamp']))
 
-    filename = workingDir + "/serve/serverFiles/sent_files/" + str(filenameIn)
-    decodedFile = base64.decodestring(fileIn)
-    file = open(filename, 'wb')
-    file.write(decodedFile)
+        #Open image for sending
+        workingDir = os.path.dirname(__file__)
 
-    saveMessage('/static/serverFiles/sent_files/'+str(filenameIn),sender,destination,stamp,'1')
-    return '0'
+        #Decode the file coming in and store it on the server
+        filename = workingDir + "/serve/serverFiles/sent_files/" + str(filenameIn)
+        decodedFile = base64.decodestring(fileIn)
+        file = open(filename, 'wb')
+        file.write(decodedFile)
+
+        #Save as text message to display to screen on embedded viewer if possible
+        saveMessage('/static/serverFiles/sent_files/'+str(filenameIn),sender,destination,stamp,'1')
+
+        #Success code
+        return '0'
+
+    #Error code
+    except KeyError:
+        return '1 Missing Compulsory Field'
 
 
-@cherrypy.expose
+#Method for returning chat history between two users in html format
 def getChatPage(page,sender,destination):
 
     #Add chat divisions to page
@@ -279,9 +302,10 @@ def getChatPage(page,sender,destination):
     cursor.execute("SELECT Message,Sender,isFile FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
     rows = cursor.fetchall()
 
-
+    #For each line of dialogue, add to the chat box
     for row in rows:
 
+        #Logic for determining which message goes on which side
         if (str(row[1]) == destination):
             page += '<div class = "chat friend">'
             page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
@@ -293,15 +317,15 @@ def getChatPage(page,sender,destination):
 
         else:
             page += '<div class = "chat self">'
-            #page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
             if (str(row[2]) == '1'):
                 page +=  addEmbeddedViewer(str(row[0]))
             else: 
                 page += '<div class = "chat-message">' + str(row[0]) + '</div>'
             page += '</div>'
 
-
     page += '</div>'
+
+    #Add the last bit of html for this page
     filename = workingDir + "/html/chatbox-bottom.html" 
     f = open(filename,"r")
     page += f.read()
@@ -310,6 +334,7 @@ def getChatPage(page,sender,destination):
     return page   
 
 
+#Adds an embedded viewer to the chat box, can currently show images,video and audio.
 def addEmbeddedViewer(fileSource):
 
     if (fileSource.endswith('jpg') or fileSource.endswith('jpe') or fileSource.endswith('png')):
@@ -334,13 +359,19 @@ def addEmbeddedViewer(fileSource):
         page = 'Cannot be displayed'
     return page
 
-def saveError(sender,destination,stamp):
+
+
+#Saves the error 'Message/file not sent' and stores locally as message to display to user
+def saveErrorMessage(sender,destination,stamp):
+
+    saveMessage('Message may not have been sent properly, please try again later.',sender,destination,stamp,'0')
+
+def saveErrorFile(sender,destination,stamp):
 
     saveMessage('File may not have been sent properly, please try again later.',sender,destination,stamp,'0')
 
 
-
-@cherrypy.expose
+#API for read receipts
 def acknowledge(data):
 
     try:

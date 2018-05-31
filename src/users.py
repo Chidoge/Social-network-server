@@ -8,7 +8,6 @@ import sqlite3
 import communication
 
 #Shows main page after login
-@cherrypy.expose
 def showUserPage():
 
     #Check session
@@ -37,24 +36,21 @@ def showUserPage():
             if (destination != username):
                 page += '<div class = onlineUser>'
                 page += '<p>' + destination + '</p>' 
-                #page += '<div style ="float:left">'
                 page += '<form action ="/chatUser?destination=' + destination +'"method="post">'
                 page += '<button type="submit">Chat</button></form>'
-                #page += '</div>'
-                #page += '<div style ="float:right">'
                 page += '<form action ="/viewProfile?destination=' + destination + '"method="post">'
                 page += '<button type="submit">View Profile</button></form>'
-                #page += '</div>'
                 page += '</div>'
 
         page += '</div>'
 
-        #Check if user had chat session with anyone
+        #Check if user had chat session with anyone, if so, show their chat box
         destination = cherrypy.session.get('destination','')
         if (destination != ''):
             page = communication.getChatPage(page,username,destination)
 
         page = page.replace('DESTINATION_HERE',destination)
+
         return page 
         
     #If not logged in and trying to access userpage, bring them back to the default page
@@ -64,11 +60,13 @@ def showUserPage():
 
 
 
-@cherrypy.expose
 def saveOnlineUsers():
 
+    #Check session
     try:
+
         username = cherrypy.session['username']
+
         #Call API to check for other online users
         r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'] + "&json=1")
         response = r.read()
@@ -104,11 +102,10 @@ def saveOnlineUsers():
 
     except KeyError:
 
-        return 'Session Expired'
+        raise cherrypy.HTTPRedirect('/')
 
 
 
-@cherrypy.expose
 def getUserIP_PORT(destination):
 
     #Open database
@@ -131,7 +128,7 @@ def getUserIP_PORT(destination):
     return info
 
 
-@cherrypy.expose
+
 def setNewChatUser(destination):
 
     cherrypy.session['destination'] = str(destination)
