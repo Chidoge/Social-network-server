@@ -10,62 +10,19 @@
 	</head>
 
 	<body onload = "gotoBottom()">
-		<div id="editProfile" class="modal">
-  
-  				<form class="modal-content animate" action="/saveEdit?name=name&position=position">
-
-				    <div class="container">
-				    	<h1>Edit My Profile</h1>
-				    	<label for="Name"><b>Name</b></label>
-				    	<input type="text" value = NAME_FORM name="name">
-
-				    	<label for="Position"><b>Position</b></label>
-				    	<input type="text" value = POSITION_FORM name="position">
-
-				    	<label for="Description"><b>Description</b></label>
-				    	<input type="text" value = DESCRIPTION_FORM name="description">
-
-				    	<label for="Location"><b>Location</b></label>
-				    	<input type="text" value = LOCATION_FORM name="location">
-
-				    	<label for="Picture"><b>Profile Picture</b></label>
-  						<input type="file" name="picture">
-				       
-				     	<button type="submit">Save</button>
-				     	<button type="button" onclick="document.getElementById('editProfile').style.display='none'" >Cancel</button>
-				    </div>
-				</form>
+		<div class = "topbar">
+			<div class = "users">
+				<h1>Online Users</h1>
 			</div>
-	<div class = "topbar">
-		<div class = "users">
-			<h1>Online Users</h1>
-		</div>
-		
-		<div class = "topbuttons">
-			<div style ="float:left">
-				<button onclick="document.getElementById('editProfile').style.display='block'">Edit Profile</button>
-			</div>
-			<div style = "float:right">
-				<form action = "/signout" method = "post">
-				<button type="submit">Sign out</button></form>
+			
+			<div class = "topbuttons">
+				<div style ="float:left">
+					<form action = "/viewOwnProfile" method = "post">
+					<button type="submit">View/Edit My Profile</button></form>
+				</div>
+				<div style = "float:right">
+					<form action = "/signout" method = "post">
+					<button type="submit">Sign out</button></form>
+				</div>
 			</div>
 		</div>
-	</div>
-	<!--<div class = "profile">
-		<th><h1>My Profile</h1></th>
-
-		<p>Name : NAME_HERE </p>
-		<p>Position : POSITION_HERE </p>
-		<p>Description : DESCRIPTION_HERE </p>
-		<p>Location : LOCATION_HERE </p>
-
-		<div class="crop">
-	    	<img src= PICTURE_HERE>
-		</div>
-	</div>-->
-
-
-
-
-
-		

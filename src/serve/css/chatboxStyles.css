@@ -1,3 +1,11 @@
+.chatArea{
+    background : blue;
+    position :fixed;
+    top : 0;
+    height : 100%;
+
+}
+
 .chatlabel {
     position:fixed;
     width : 50%;
@@ -92,6 +100,7 @@
     font-size: 20px;
 }
 
+
 .chat-message-image img {
     display: block;
     max-width : 300px;
@@ -99,6 +108,29 @@
     width: auto;
     height: auto;
     border-radius:  10px;
+}
+
+.chat .chat-message-video {
+    position : sticky;
+    width: auto;
+    max-width: 300px;
+    word-wrap:break-word;
+    display:inline-block;
+    margin: 5px 10px 0;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 20px;
+}
+
+.chat-message-video video {
+
+    display: block;
+    max-width : 300px;
+    max-height : 300px;
+    width: auto;
+    height: auto;
+    border-radius:  10px;
+
 }
 
 

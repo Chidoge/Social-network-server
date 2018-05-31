@@ -182,10 +182,57 @@ def getProfile(data):
         return '1'
 
 
+@cherrypy.expose
+def viewOwnProfile():
+
+    #Check session
+    try:
+
+        username = cherrypy.session['username']
+
+        #Read database
+        workingDir = os.path.dirname(__file__)
+        dbFilename = workingDir + "/db/userinfo.db"
+        f = open(dbFilename,"r")
+        conn = sqlite3.connect(dbFilename)
+        cursor = conn.cursor()
+        cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile where UPI = ?",[username])
+
+        rows = cursor.fetchall()
+            
+        name = str(rows[0][0])
+        position = str(rows[0][1])
+        description = str(rows[0][2])
+        location = str(rows[0][3])
+        picture = str(rows[0][4])
+
+
+        #Prepare html
+        workingDir = os.path.dirname(__file__)
+        filename = workingDir + "/html/ownProfile.html"
+        f = open(filename,"r")
+        page = f.read()
+
+
+        page = page.replace('NAME_HERE',name)
+        page = page.replace('POSITION_HERE',position)
+        page = page.replace('DESCRIPTION_HERE',description)
+        page = page.replace('LOCATION_HERE',location)
+        page = page.replace('PICTURE_HERE',picture)
+
+        page = page.replace('NAME_FORM',"'"+name+"'")
+        page = page.replace('POSITION_FORM',"'"+position+"'")
+        page = page.replace('DESCRIPTION_FORM',"'"+description+"'")
+        page = page.replace('LOCATION_FORM',"'"+location+"'")
+        return page
+
+    except KeyError:
+        raise cherrypy.HTTPRedirect('/')
+
 
 #Function that saves user's profile edits
 @cherrypy.expose
-def saveEdit(name,position,description,location,picture):
+def saveEdit(name,position,description,location):
     
     #Check user session
     try:
@@ -202,15 +249,7 @@ def saveEdit(name,position,description,location,picture):
         #Key for last updated profile
         lastUpdated = time.time()
 
-        #Checks if anything was uploaded, and makes sure that it is an image(.png and .jpg only supported currently).
-        #Then update the profile.
-        if (picture != ''):
-            if (picture.endswith('.jpg') or picture.endswith('.png')):
-                picture = "/static/serverFiles/profile_pictures/" + picture
-                cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,Picture = ?,lastUpdated = ? WHERE UPI = ?",[name,position,description,location,picture,lastUpdated,username])
-        else:
-            cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ?,lastUpdated = ? WHERE UPI = ?",[name,position,description,location,lastUpdated,username])
-
+        cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,lastUpdated = ? WHERE UPI = ?",[name,position,description,location,lastUpdated,username])
 
         #Save database changes and return to userpage
         conn.commit()
@@ -224,5 +263,41 @@ def saveEdit(name,position,description,location,picture):
         raise cherrypy.HTTPRedirect('/')
 
 
+#Updates user's profile picture
+@cherrypy.expose
+def editPicture(picture):
 
-    
+    #Check session
+    try:
+        username = cherrypy.session['username']
+
+        #Guess an extension for the file type
+        fileType = mimetypes.guess_type(str(picture))
+
+        #Prepare file path to store on server
+        workingDir = os.path.dirname(__file__)
+        newfilename = workingDir + "/serve/serverFiles/profile_pictures/" + username + ".jpg"
+
+        #Write the uploaded data to a file and store it on the server
+        if picture.file: 
+            with file(newfilename, 'wb') as outfile:
+                outfile.write(picture.file.read())
+
+        #Prepare database for writing to
+        dbFilename = workingDir + "/db/userinfo.db"
+        f = open(dbFilename,"r+")
+        conn = sqlite3.connect(dbFilename)
+        cursor = conn.cursor()
+
+        picture = "/static/serverFiles/profile_pictures/" + username + ".jpg"
+
+        cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?",[picture,username])
+
+        #Save database changes and return to userpage
+        conn.commit()
+        conn.close()
+
+        raise cherrypy.HTTPRedirect('/viewOwnProfile')
+
+    except KeyError:
+        raise cherrypy.HTTPRedirect('/')

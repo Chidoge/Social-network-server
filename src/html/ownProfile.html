@@ -1,0 +1,63 @@
+<!D0CTYPE html>
+<html>	
+	<head>
+		<title>My Profile</title>
+		<link href = "/static/css/myProfileStyles.css" rel="stylesheet" type = "text/css"></style>
+	</head>
+
+
+	<body>
+		<div class = "profile">
+			<th><h1>My Profile</h1></th>
+
+			<p>Name : NAME_HERE </p>
+			<p>Position : POSITION_HERE </p>
+			<p>Description : DESCRIPTION_HERE </p>
+			<p>Location : LOCATION_HERE </p>
+
+
+
+			
+
+			<div class="crop">
+			    <img src= PICTURE_HERE>
+			</div>
+
+		</div>
+
+		<b>Change my Profile Picture</b>
+		<form action = "/editPicture" method="post" enctype="multipart/form-data">
+	  	<input type="file" name="picture" accept="image/*">
+	  	<button type ="submit">Upload</button></form>
+
+		<div class = "topbuttons">
+  			<button onclick="document.getElementById('editProfile').style.display='block'">Edit Profile</button>
+	  		<form action = "/" method = "post">
+	  		<button type = "submit">Back to Userpage</button></form>
+  		</div>
+
+		<div id="editProfile" class="modal">
+  
+  				<form class="modal-content animate" action="/saveEdit?name=name&position=position">
+
+				    <div class="container">
+				    	<h1>Edit My Profile</h1>
+				    	<label for="Name"><b>Name</b></label>
+				    	<input type="text" value = NAME_FORM name="name">
+
+				    	<label for="Position"><b>Position</b></label>
+				    	<input type="text" value = POSITION_FORM name="position">
+
+				    	<label for="Description"><b>Description</b></label>
+				    	<input type="text" value = DESCRIPTION_FORM name="description">
+
+				    	<label for="Location"><b>Location</b></label>
+				    	<input type="text" value = LOCATION_FORM name="location">
+				       
+				     	<button type="submit">Save</button>
+				     	<button type="button" onclick="document.getElementById('editProfile').style.display='none'" >Cancel</button>
+				    </div>
+				</form>
+		</div>
+	</body>
+</html>

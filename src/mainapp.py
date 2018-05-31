@@ -125,12 +125,24 @@ class MainApp(object):
         return profiles.viewProfile(destination)
 
 
+    @cherrypy.expose
+    def viewOwnProfile(self):
+
+        return profiles.viewOwnProfile()
+
+
     #Saves user changes to their profile
     @cherrypy.expose
-    def saveEdit(self,name,position,description,location,picture):
+    def saveEdit(self,name,position,description,location):
 
-        profiles.saveEdit(name,position,description,location,picture)
+        profiles.saveEdit(name,position,description,location)
 
+
+    #Change user's profile picture
+    @cherrypy.expose
+    def editPicture(self,picture):
+
+        profiles.editPicture(picture)
 
     #Public API for other users to get this node's profile
     @cherrypy.expose

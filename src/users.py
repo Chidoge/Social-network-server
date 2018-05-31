@@ -16,7 +16,6 @@ def showUserPage():
 
         username = cherrypy.session['username']
 
-
         #Get base html for page
         workingDir = os.path.dirname(__file__)
         filename = workingDir + "/html/userpage.html"
@@ -24,28 +23,12 @@ def showUserPage():
         page = f.read()
         f.close()
 
-        #Read database
-        dbFilename = workingDir + "/db/userinfo.db"
-        f = open(dbFilename,"r")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
-        cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile where UPI = ?",[username])
-
-        rows = cursor.fetchall()
-
-        name = str(rows[0][0])
-        position = str(rows[0][1])
-        description = str(rows[0][2])
-        location = str(rows[0][3])
-        picture = str(rows[0][4])
-
-
         #Call API to check for other online users
         r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'] + "&json=1")
         response = r.read()
         users = json.loads(response)
 
-
+        #Assemble online user list in html format.
         page += '<div class = "sidebar">'
         for i in users:
  
@@ -66,20 +49,8 @@ def showUserPage():
 
         page += '</div>'
 
-        page = page.replace('NAME_HERE',name)
-        page = page.replace('POSITION_HERE',position)
-        page = page.replace('DESCRIPTION_HERE',description)
-        page = page.replace('LOCATION_HERE',location)
-        page = page.replace('PICTURE_HERE',picture)
-
-        page = page.replace('NAME_FORM',"'"+name+"'")
-        page = page.replace('POSITION_FORM',"'"+position+"'")
-        page = page.replace('DESCRIPTION_FORM',"'"+description+"'")
-        page = page.replace('LOCATION_FORM',"'"+location+"'")
-
+        #Check if user had chat session with anyone
         destination = cherrypy.session.get('destination','')
-
-
         if (destination != ''):
             page = communication.getChatPage(page,username,destination)
 

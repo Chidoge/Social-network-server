@@ -27,13 +27,6 @@ def receiveMessage(data):
         encryption = data.get('encryption','0')
 
 
-        if (encryption == '2'):
-        	LOGIN_SERVER_PUBLIC_KEY = '41fb5b5ae4d57c5ee528adb078ac3b2e'
-        	message = binascii.unhexlify(message)
-        	iv = message[:16]
-        	cipher = AES.new(LOGIN_SERVER_PUBLIC_KEY, AES.MODE_CBC, iv )
-        	message = cipher.decrypt(message[16:]).rstrip(PADDING)
-
         #Prepare database for storing message    
         workingDir = os.path.dirname(__file__)
         dbFilename = workingDir + "/db/messages.db"
@@ -41,10 +34,10 @@ def receiveMessage(data):
         conn = sqlite3.connect(dbFilename)
         cursor = conn.cursor()
 
-            
-            
+        #Store the message into database
         cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,'0'])
 
+        #Save changes and return 0
         conn.commit()
         conn.close()
 
@@ -67,6 +60,7 @@ def sendMessage(message):
     try:
         sender = cherrypy.session['username']
         destination = cherrypy.session['destination']
+        stamp = str(time.time())
 
         if (message == None or len(message) == 0):
 
@@ -82,41 +76,44 @@ def sendMessage(message):
             try:
                 #Ping destination to see if they are online
                 url = "http://%s:%s/ping?sender=%s" % (ip,port,sender)
-                pingResponse = urllib2.urlopen(url).read()
+                pingResponse = urllib2.urlopen(url,timeout=3).read()
 
             except urllib2.URLError, exception:
-                return 'Could not ping'
+                saveError(sender,destination,stamp)
+                raise cherrypy.HTTPRedirect('/showUserPage')
+
+            #Show error if ping response is invalid
+            if (len(pingResponse) == 0 or pingResponse[0] != '0'):
+                saveError(sender,destination,stamp)
+                raise cherrypy.HTTPRedirect('/showUserPage')
 
 
-            #If destination was pinged successfully
-            if (pingResponse == '0'):
+            #If no error, carry on
 
-                #Construct the URL for calling the /receiveFile API of the destination
-                url = "http://%s:%s/receiveMessage" % (ip,port)
+            #Construct the URL for calling the /receiveFile API of the destination
+            url = "http://%s:%s/receiveMessage" % (ip,port)
 
-                #Put compulsory arguments into output dictionary, then json encode it
-                stamp = str(time.time())
-                output_dict = {'sender' :sender,'message':message,'stamp':stamp,'destination':destination}
-                data = json.dumps(output_dict)
+            #Put compulsory arguments into output dictionary, then json encode it
+            output_dict = {'sender' :sender,'message':message,'stamp':stamp,'destination':destination}
+            data = json.dumps(output_dict)
 
-                try:
-                    #Put json encoded object into http header
-                    req = urllib2.Request(url,data,{'Content-Type':'application/json'})
-                    response = urllib2.urlopen(req).read()
+            try:
+                #Put json encoded object into http header
+                req = urllib2.Request(url,data,{'Content-Type':'application/json'})
+                response = urllib2.urlopen(req).read()
 
-                    if (response[0] == '0'):
-                        #Keep them on chat page
-                        saveMessage(message,sender,destination,stamp,'0')
-                        raise cherrypy.HTTPRedirect('/showUserPage')
-                    else:
+                if (len(response) != 0 and response[0] == '0'):
+                    #Keep them on chat page
+                    saveMessage(message,sender,destination,stamp,'0')
+                    raise cherrypy.HTTPRedirect('/showUserPage')
+                else:
+                    saveError(sender,destination,stamp)
+                    raise cherrypy.HTTPRedirect('/showUserPage')
 
-                        print 'Code error : ' + response[0]
-                        return 'Message not sent but ping response is 0'
+            except urllib2.URLError, exception:
 
-
-                except urllib2.URLError, exception:
-
-                    return 'Message could not be sent'
+                saveError(sender,destination,stamp)
+                raise cherrypy.HTTPRedirect('/showUserPage')
 
 
     except KeyError:
@@ -143,6 +140,7 @@ def saveMessage(message,sender,destination,stamp,isFile):
     conn.close()
 
 
+#Used to send a file which is uploaded using html file upload
 @cherrypy.expose
 def sendFile(fileData):
 
@@ -153,23 +151,25 @@ def sendFile(fileData):
         sender = cherrypy.session['username']
         destination = cherrypy.session['destination']
 
-        #Add a stamp to the file and use for file name
+        #Add a stamp to the file and use it for the file name
         stamp = str(int(time.time()))
 
         #Guess an extension for the file type
         extension = mimetypes.guess_extension(str(fileData.type),strict=True)
 
-        #Prepare file path and store on server
+        #Prepare file path to store on server
         workingDir = os.path.dirname(__file__)
         newfilename = workingDir + "/serve/serverFiles/sent_files/" + sender + stamp + extension
 
+        #Write the uploaded data to a file and store it on the server
         if fileData.file: 
             with file(newfilename, 'wb') as outfile:
                 outfile.write(fileData.file.read())
 
-
+        #Open file and prepare to encode for sending
         image = open(newfilename, 'rb')
         imageRead = image.read()
+
         #Encode image in base 64
         encodedFile = base64.b64encode(imageRead)
 
@@ -178,7 +178,7 @@ def sendFile(fileData):
         ip = data['ip']
         port = data['port']
 
-        #Guess the mimetype of the file that we're sending
+        #Guess the mimetype of the file to send
         content_type = mimetypes.guess_type(imageRead, strict=True)
 
 
@@ -189,22 +189,30 @@ def sendFile(fileData):
         #Construct the URL for calling the /receiveFile API of the destination
         url = "http://%s:%s/receiveFile" % (ip,port)
 
-        #Attempt to call the API, if fails, return error
+        #Attempt to call the API, if failed, return error
         try:
             #Put json encoded object into http header
             req = urllib2.Request(url,data,{'Content-Type':'application/json'})
             response = urllib2.urlopen(req).read()
-            saveMessage('/static/serverFiles/sent_files/'+sender+stamp+extension,sender,destination,stamp,'1')
-            raise cherrypy.HTTPRedirect('/')
+
+           
+            #Make sure they are returning something(for interaction with substandard clients)
+            if (len(response) !=0 or response[0] == '0'):
+
+                saveMessage('/static/serverFiles/sent_files/'+sender+stamp+extension,sender,destination,stamp,'1')
+                raise cherrypy.HTTPRedirect('/showUserPage')
+            else:
+                saveError(sender,destination,stamp)
+                raise cherrypy.HTTPRedirect('/showUserPage')
 
         except urllib2.URLError, exception:
-
-            return 'File could not be sent'
-
-
+            saveError(sender,destination,stamp)
+            raise cherrypy.HTTPRedirect('/showUserPage')
     except KeyError:
+        saveError(sender,destination,stamp)
+        raise cherrypy.HTTPRedirect('/showUserPage')
 
-        raise cherrypy.HTTPRedirect('/')
+
 
 
 @cherrypy.expose
@@ -301,13 +309,35 @@ def getChatPage(page,sender,destination):
 
     return page   
 
-@cherrypy.expose
+
 def addEmbeddedViewer(fileSource):
 
-
-    page = '<div class = "chat-message-image"><img src="' + fileSource + '">' +'</div>'
-
+    if (fileSource.endswith('jpg') or fileSource.endswith('jpe') or fileSource.endswith('png')):
+        page = '<div class = "chat-message-image">'
+        page += '<img src="' + fileSource + '">'
+        page += '</div>'
+    elif (fileSource.endswith('mp4') or fileSource.endswith('webm') or fileSource.endswith('ogg')):
+        page = '<div class = "chat-message-image">'
+        page += '<video width="320" controls>'
+        page += '<source src="' + fileSource + '" type="video/mp4">'
+        #page += '<source src="movie.ogg" type="video/ogg">'
+        page += '</video>'
+        page += '</div>'
+    elif (fileSource.endswith('mp3') or fileSource.endswith('ogg')):
+        page = '<div class = "chat-message-image">'
+        page += '<audio controls>'
+        page += '<source src="' + fileSource + '" type="audio/mpeg">'
+        #page += '<source src="movie.ogg" type="video/ogg">'
+        page += '</audio>'
+        page += '</div>'
+    else:
+        page = 'Cannot be displayed'
     return page
+
+def saveError(sender,destination,stamp):
+
+    saveMessage('File may not have been sent properly, please try again later.',sender,destination,stamp,'0')
+
 
 
 @cherrypy.expose

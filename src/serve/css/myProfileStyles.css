@@ -1,0 +1,116 @@
+body {
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 18px;
+    background : #d3d3d3;
+    color : #3090C7;
+}
+
+input[type=text]{
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+
+button {
+
+    background-color: #3090C7;
+    color: white;
+    padding: 14px 20px;
+    margin-top: 1%;
+    border: none;
+    cursor: pointer;
+    width: 300px;
+}
+
+button:hover {
+
+    opacity: 0.9;
+}
+
+.topbuttons {
+
+    position : fixed;
+    top : 0px;
+    width : 100%;
+}
+
+.topbuttons button {
+    float : right;
+    width : 15%;
+}
+img {
+    width:auto;
+    height:auto;
+    max-width: 500px;
+    max-height:500px;
+}
+
+
+.container {
+    padding: 15px;
+}
+
+
+
+.profile{
+
+}
+
+.editProfile{
+
+}
+
+.container {
+    padding: 15px;
+}
+
+
+.modal {
+    display: none;
+    position: fixed;
+    left : 0;
+    top : 5%;
+    width: 35%;
+    height: 80%;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto 20% auto;
+    width: 80%; 
+    height: 80%;
+    border : 1px solid #3090C7;
+
+}
+
+
+.animate {
+    -webkit-animation: animatezoom 0.6s;
+    animation: animatezoom 0.6s
+}
+
+@-webkit-keyframes animatezoom {
+    from {-webkit-transform: scale(0)} 
+    to {-webkit-transform: scale(1)}
+}
+    
+@keyframes animatezoom {
+    from {transform: scale(0)} 
+    to {transform: scale(1)}
+}
+
+
+@media screen and (max-width: 300px) {
+    span.psw {
+       display: block;
+       float: none;
+    }
+    .cancelbtn {
+       width: 100%;
+    }
+}
+

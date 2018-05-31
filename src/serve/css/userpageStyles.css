@@ -38,25 +38,6 @@ button:hover {
 }
 
 
-.modal {
-    display: none;
-    position: fixed;
-    left : 0;
-    top : 5%;
-    width: 35%;
-    height: 80%;
-}
-
-.modal-content {
-    background-color: white;
-    margin: 10% auto 20% auto;
-    width: 80%; 
-    height: 80%;
-    border : 1px solid #3090C7;
-
-}
-
-
 .crop img {
     width :auto;
     height:auto;
@@ -130,35 +111,3 @@ button:hover {
 
 
 }
-
-
-
-
-.animate {
-    -webkit-animation: animatezoom 0.6s;
-    animation: animatezoom 0.6s
-}
-
-@-webkit-keyframes animatezoom {
-    from {-webkit-transform: scale(0)} 
-    to {-webkit-transform: scale(1)}
-}
-    
-@keyframes animatezoom {
-    from {transform: scale(0)} 
-    to {transform: scale(1)}
-}
-
-
-@media screen and (max-width: 300px) {
-    span.psw {
-       display: block;
-       float: none;
-    }
-    .cancelbtn {
-       width: 100%;
-    }
-}
-
-
-
