@@ -248,7 +248,7 @@ def saveEdit(name,position,description,location):
         cursor = conn.cursor()
 
         #Key for last updated profile
-        lastUpdated = time.time()
+        lastUpdated = str(time.time())
 
         cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,lastUpdated = ? WHERE UPI = ?",[name,position,description,location,lastUpdated,username])
 

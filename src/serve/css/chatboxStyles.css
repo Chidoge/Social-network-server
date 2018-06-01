@@ -1,7 +1,6 @@
 .chatArea{
     background : blue;
     position :fixed;
-    top : 0;
     height : 100%;
 
 }
@@ -20,7 +19,7 @@
     width : 50%;
     height: 72.5%;
     position :fixed;
-    top : -70%;
+    margin-top : 5%;
     margin-left : 0%;
     background: white;
 }

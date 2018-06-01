@@ -2,7 +2,7 @@
 <html>	
 	<head>
 		<title>User-Page</title>
-		<script src="/static/js/userpage.js"></script>
+		<script src="/static/js/userpage.js" type="text/javascript"></script>
 		<style  rel="stylesheet" type = "text/css">
 			@import url("/static/css/userpageStyles.css");
 			@import url("/static/css/chatboxStyles.css");
@@ -10,7 +10,7 @@
 		
 	</head>
 
-	<body>
+	<body onload = "goToBottom()">
 		<div class = "topbar">
 			<div class = "users">
 				<h1>Online Users</h1>
@@ -28,4 +28,4 @@
 			</div>
 		</div>
 
-	<div id = "userList">
+	<div id = "userList"></div>

@@ -11,7 +11,7 @@
 
 # The address we listen for connections on
 listen_ip = "0.0.0.0"
-listen_port = 15010
+listen_port = 10005
 
 import cherrypy
 import json
@@ -253,7 +253,7 @@ def runMainApp():
 
             '/static' : {
                 'tools.staticdir.on'  : True,
-                'tools.staticdir.dir' : os.getcwd()
+                'tools.staticdir.dir' : os.getcwd() +"/serve"
             }
         }
 

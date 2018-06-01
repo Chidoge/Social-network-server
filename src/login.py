@@ -10,7 +10,7 @@ import thread
 import threading
 import time
 
-listen_port = 15010
+listen_port = 10005
 
 
 
@@ -87,9 +87,9 @@ def signout():
 def authoriseUserLogin(username,password,location):
 
     #Get user's ip address
-    hostIP = urllib2.urlopen('https://api.ipify.org').read()
+    #hostIP = urllib2.urlopen('https://api.ipify.org').read()
     """For internal ip address"""
-    #hostIP =socket.gethostbyname(socket.gethostname())
+    hostIP =socket.gethostbyname(socket.gethostname())
 
     #Hash user's password
     hashedPW = hashlib.sha256(password+username).hexdigest()

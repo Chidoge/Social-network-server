@@ -39,7 +39,7 @@ def receiveMessage(data):
         conn.commit()
         conn.close()
 
-        cherrypy.session['newMessage'] = True
+        cherrypy.session['newMessage'] = 'True'
         return '0'
 
     except KeyError:
@@ -104,7 +104,8 @@ def sendMessage(message):
                 if (len(response) != 0 and response[0] == '0'):
                     #Keep them on chat page
                     saveMessage(message,sender,destination,stamp,'0')
-                    raise cherrypy.HTTPRedirect('/showUserPage')
+		    cherrypy.session['newMessage'] = 'True'
+                    #raise cherrypy.HTTPRedirect('/showUserPage')
                 else:
                     saveError(sender,destination,stamp)
                     raise cherrypy.HTTPRedirect('/showUserPage')
@@ -271,9 +272,7 @@ def getChatPage(page,sender,destination):
     f = open(filename,"r")
     page += f.read()
     f.close
-    return page
 
-    page += '<div id = "chatlogs" class="chatlogs">'
 
     #Grab profile picture of destination to put into chat box
     dbFilename = workingDir + "/db/userinfo.db"
@@ -325,7 +324,10 @@ def getChatPage(page,sender,destination):
                 page += '<div class = "chat-message">' + str(row[0]) + '</div>'
             page += '</div>'
 
-    page += '</div>'
+
+    filename = workingDir + "/html/chatbox-bottom.html"
+    f = open(filename,"r")
+    page += f.read()
 
 
     return page   
@@ -424,7 +426,7 @@ def refreshChat():
 
         #Logic for determining which message goes on which side
         if (str(row[1]) == destination):
-            page += '<div class = "chat friend">'
+            page = '<div class = "chat friend">'
             page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
             if (str(row[2]) == '1'):
                 page +=  addEmbeddedViewer(str(row[0]))
@@ -433,16 +435,15 @@ def refreshChat():
             page += '</div>'
 
         else:
-            page += '<div class = "chat self">'
+            page = '<div class = "chat self">'
             if (str(row[2]) == '1'):
                 page +=  addEmbeddedViewer(str(row[0]))
             else: 
                 page += '<div class = "chat-message">' + str(row[0]) + '</div>'
             page += '</div>'
 
-
-    output_dict = {'page' : page , 'newMessaage' : str(cherrypy.session.get('newMessage',''))}
-    cherrypy.session['newMessage'] = False
+    output_dict = {'newChat' : page , 'newMessage' : str(cherrypy.session.get('newMessage',''))}
+    cherrypy.session['newMessage'] = 'False'
     out = json.dumps(output_dict)
 
     return out   
