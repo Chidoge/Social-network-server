@@ -28,23 +28,6 @@ def showUserPage():
         response = r.read()
         users = json.loads(response)
 
-        #Assemble online user list in html format.
-        page += '<div class = "sidebar">'
-        for i in users:
- 
-            destination= users[i]['username']
-            #No need to show current user their own profile
-            if (destination != username):
-                page += '<div class = onlineUser>'
-                page += '<p>' + destination + '</p>' 
-                page += '<form action ="/chatUser?destination=' + destination +'"method="post">'
-                page += '<button type="submit">Chat</button></form>'
-                page += '<form action ="/viewProfile?destination=' + destination + '"method="post">'
-                page += '<button type="submit">View Profile</button></form>'
-                page += '</div>'
-
-        page += '</div></div>'
-
         #Check if user had chat session with anyone, if so, show their chat box
         destination = cherrypy.session.get('destination','')
         if (destination != ''):
@@ -154,7 +137,7 @@ def refreshUserList():
     users = json.loads(response)
 
     #Assemble online user list in html format.
-    page = '<div class = "sidebar">'
+    page = ''
     for i in users:
 
         destination= users[i]['username']
@@ -168,7 +151,6 @@ def refreshUserList():
             page += '<button type="submit">View Profile</button></form>'
             page += '</div>'
 
-    page += '</div></div>'
 
     output_dict = { "page" : page}
     out = json.dumps(output_dict)
