@@ -39,6 +39,7 @@ def receiveMessage(data):
         conn.commit()
         conn.close()
 
+        cherrypy.session['newMessage'] = True
         return '0'
 
     except KeyError:
@@ -270,6 +271,7 @@ def getChatPage(page,sender,destination):
     f = open(filename,"r")
     page += f.read()
     f.close
+    return page
 
     page += '<div id = "chatlogs" class="chatlogs">'
 
@@ -325,11 +327,6 @@ def getChatPage(page,sender,destination):
 
     page += '</div>'
 
-    #Add the last bit of html for this page
-    filename = workingDir + "/html/chatbox-bottom.html" 
-    f = open(filename,"r")
-    page += f.read()
-    f.close
 
     return page   
 
@@ -386,3 +383,66 @@ def acknowledge(data):
     except KeyError:
         return '1 Missing Compulsory Field'
 
+
+def refreshChat():
+
+    destination = cherrypy.session['destination']
+    sender = cherrypy.session['username']
+
+    #Grab profile picture of destination to put into chat box
+    workingDir = os.path.dirname(__file__)
+    dbFilename = workingDir + "/db/userinfo.db"
+    f = open(dbFilename,"r")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+    cursor.execute("SELECT Picture FROM Profile WHERE UPI = ?",[destination])
+    row = cursor.fetchone()
+
+    #Use anon picture if they dont have a picture
+    if (row == None):
+
+        picture = '/static/css/anon.png'
+
+    elif (str(row[0]) == 'None'):
+
+        picture = '/static/css/anon.png'
+    else:
+        picture = str(row[0])
+
+    page = ''
+    #Compile the chat history between sender and destination in order
+    dbFilename = workingDir + "/db/messages.db"
+    f = open(dbFilename,"r")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+    cursor.execute("SELECT Message,Sender,isFile FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
+    rows = cursor.fetchall()
+
+
+    #For each line of dialogue, add to the chat box
+    for row in rows:
+
+        #Logic for determining which message goes on which side
+        if (str(row[1]) == destination):
+            page += '<div class = "chat friend">'
+            page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
+            if (str(row[2]) == '1'):
+                page +=  addEmbeddedViewer(str(row[0]))
+            else: 
+                page += '<div class = "chat-message">' + str(row[0]) + '</div>'
+            page += '</div>'
+
+        else:
+            page += '<div class = "chat self">'
+            if (str(row[2]) == '1'):
+                page +=  addEmbeddedViewer(str(row[0]))
+            else: 
+                page += '<div class = "chat-message">' + str(row[0]) + '</div>'
+            page += '</div>'
+
+
+    output_dict = {'page' : page , 'newMessaage' : str(cherrypy.session.get('newMessage',''))}
+    cherrypy.session['newMessage'] = False
+    out = json.dumps(output_dict)
+
+    return out   

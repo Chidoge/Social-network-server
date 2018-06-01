@@ -168,6 +168,10 @@ class MainApp(object):
     
 
 #Nothing here at the moment
+    @cherrypy.expose
+    def refreshChat(self):
+
+        return communication.refreshChat()
 
 #-----------------------------------------END----------------------------------------------#
 
