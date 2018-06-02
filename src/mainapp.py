@@ -200,6 +200,11 @@ class MainApp(object):
         else:
             raise cherrypy.HTTPRedirect('/showUserPage')
 
+    @cherrypy.expose
+    def setMessageDisplayed(self):
+
+        cherrypy.session['newMessage'] = False
+
 
     #Calls other node's /receiveFile API
     @cherrypy.expose

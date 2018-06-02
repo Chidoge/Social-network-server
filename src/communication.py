@@ -62,8 +62,7 @@ def sendMessage(message):
 
         #Make sure user is typing in a message(cannot just be blank spaces)
         if (message == None or len(message) == 0):
-
-            raise cherrypy.HTTPRedirect('/chatUser?destination='+destination)
+            pass
 
         else :
 
@@ -79,14 +78,14 @@ def sendMessage(message):
                 url = "http://%s:%s/ping?sender=%s" % (ip,port,sender)
                 pingResponse = urllib2.urlopen(url,timeout=3).read()
 
+                #Show error if ping response is invalid
+                if (len(pingResponse) == 0 or pingResponse[0] != '0'):
+                    saveErrorMessage(sender,destination,stamp)
+
             except urllib2.URLError, exception:
                 saveErrorMessage(sender,destination,stamp)
-                raise cherrypy.HTTPRedirect('/showUserPage')
 
-            #Show error if ping response is invalid
-            if (len(pingResponse) == 0 or pingResponse[0] != '0'):
-                saveErrorMessage(sender,destination,stamp)
-                raise cherrypy.HTTPRedirect('/showUserPage')
+            
 
 
             #Construct the URL for calling the /receiveFile API of the destination
@@ -102,23 +101,19 @@ def sendMessage(message):
                 response = urllib2.urlopen(req).read()
 
                 if (len(response) != 0 and response[0] == '0'):
-                    #Keep them on chat page
                     saveMessage(message,sender,destination,stamp,'0')
-		    cherrypy.session['newMessage'] = 'True'
-                    #raise cherrypy.HTTPRedirect('/showUserPage')
                 else:
-                    saveError(sender,destination,stamp)
-                    raise cherrypy.HTTPRedirect('/showUserPage')
+                    saveErrorMessage(sender,destination,stamp)
 
             except urllib2.URLError, exception:
-
-                saveError(sender,destination,stamp)
-                raise cherrypy.HTTPRedirect('/showUserPage')
+                saveErrorMessage(sender,destination,stamp)
 
 
     except KeyError:
 
         return 'Session expired'
+
+    cherrypy.session['newMessage'] = 'True'
 
 
 #Function which locally stores the messages being sent by current user
@@ -133,7 +128,8 @@ def saveMessage(message,sender,destination,stamp,isFile):
 
     #Insert message row
     cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,isFile])
-    
+    cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,isFile])
+
     #Save changes
     conn.commit()
     conn.close()
@@ -218,14 +214,14 @@ def sendFile(fileData):
                 saveMessage('/static/serverFiles/sent_files/'+sender+stamp+extension,sender,destination,stamp,'1')
                 raise cherrypy.HTTPRedirect('/showUserPage')
             else:
-                saveError(sender,destination,stamp)
+                saveErrorMessage(sender,destination,stamp)
                 raise cherrypy.HTTPRedirect('/showUserPage')
 
         except urllib2.URLError, exception:
-            saveError(sender,destination,stamp)
+            saveErrorMessage(sender,destination,stamp)
             raise cherrypy.HTTPRedirect('/showUserPage')
     except KeyError:
-        saveError(sender,destination,stamp)
+        saveErrorMessage(sender,destination,stamp)
         raise cherrypy.HTTPRedirect('/showUserPage')
 
 
@@ -417,33 +413,38 @@ def refreshChat():
     f = open(dbFilename,"r")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
-    cursor.execute("SELECT Message,Sender,isFile FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
+    cursor.execute("SELECT Message,Sender,isFile FROM MessageBuffer WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
     rows = cursor.fetchall()
-
 
     #For each line of dialogue, add to the chat box
     for row in rows:
 
         #Logic for determining which message goes on which side
         if (str(row[1]) == destination):
-            page = '<div class = "chat friend">'
+            page += ''
             page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
             if (str(row[2]) == '1'):
                 page +=  addEmbeddedViewer(str(row[0]))
             else: 
                 page += '<div class = "chat-message">' + str(row[0]) + '</div>'
-            page += '</div>'
+            page += '</div>;'
+            sender = 'friend'
 
         else:
-            page = '<div class = "chat self">'
+            page += ''
             if (str(row[2]) == '1'):
                 page +=  addEmbeddedViewer(str(row[0]))
             else: 
                 page += '<div class = "chat-message">' + str(row[0]) + '</div>'
-            page += '</div>'
+            page += '</div>;'
+            sender = 'self'
 
-    output_dict = {'newChat' : page , 'newMessage' : str(cherrypy.session.get('newMessage',''))}
-    cherrypy.session['newMessage'] = 'False'
+
+    cursor.execute("DELETE FROM MessageBuffer")
+    conn.commit()
+    conn.close()
+
+    output_dict = {'newChat' : page , 'newMessage' : str(cherrypy.session.get('newMessage','')), 'sender' : sender}
     out = json.dumps(output_dict)
 
     return out   

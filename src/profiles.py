@@ -8,7 +8,7 @@ import sqlite3
 import users
 import time
 
-port = 15010
+port = 10010
 
 
 #Call other node's getProfile
@@ -160,7 +160,7 @@ def getProfile(data):
         row = cursor.fetchone()
 
         #Construct URL for image
-        url = "http://" + hostIP + ":" + str(port) + "/" + row[4]
+        url = "http://" + hostIP + ":" + str(port) +  str(row[4])
 
         conn.close()
 

@@ -23,17 +23,13 @@ def showUserPage():
         page = f.read()
         f.close()
 
-        #Call API to check for other online users
-        r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'] + "&json=1")
-        response = r.read()
-        users = json.loads(response)
-
         #Check if user had chat session with anyone, if so, show their chat box
         destination = cherrypy.session.get('destination','')
         if (destination != ''):
             page = communication.getChatPage(page,username,destination)
 
         page = page.replace('DESTINATION_HERE',destination)
+
 
         return page 
         
@@ -119,6 +115,7 @@ def setNewChatUser(destination):
 
     raise cherrypy.HTTPRedirect('/showUserPage')
 
+
 @cherrypy.expose
 def refreshUserList():
 
@@ -156,3 +153,36 @@ def refreshUserList():
     out = json.dumps(output_dict)
 
     return out
+
+def getList():
+
+    username = cherrypy.session['username']
+
+    #Get base html for page
+    workingDir = os.path.dirname(__file__)
+    filename = workingDir + "/html/userpage.html"
+    f = open(filename,"r")
+    #page = f.read()
+    f.close()
+
+    #Call API to check for other online users
+    r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'] + "&json=1")
+    response = r.read()
+    users = json.loads(response)
+
+    #Assemble online user list in html format.
+    page = ''
+    for i in users:
+
+        destination= users[i]['username']
+        #No need to show current user their own profile
+        if (destination != username):
+            page += '<div class = onlineUser>'
+            page += '<p>' +  str(destination) + '</p>' 
+            page += '<form action ="/chatUser?destination=' + str(destination) +'"method="post">'
+            page += '<button type="submit">Chat</button></form>'
+            page += '<form action ="/viewProfile?destination=' +  str(destination) + '"method="post">'
+            page += '<button type="submit">View Profile</button></form>'
+            page += '</div>'
+
+    return page
