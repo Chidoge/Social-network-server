@@ -34,17 +34,19 @@ def receiveMessage(data):
 
         #Store the message into database
         cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,'0'])
-
+        cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,'0'])
         #Save changes and return 0
         conn.commit()
         conn.close()
 
-        cherrypy.session['newMessage'] = 'True'
+
         return '0'
 
     except KeyError:
 
         return '1: Missing Compulsory Field'
+
+    cherrypy.session['newMessage'] = 'True'
         
 
 
@@ -214,14 +216,14 @@ def sendFile(fileData):
                 saveMessage('/static/serverFiles/sent_files/'+sender+stamp+extension,sender,destination,stamp,'1')
                 raise cherrypy.HTTPRedirect('/showUserPage')
             else:
-                saveErrorMessage(sender,destination,stamp)
+                saveErrorFile(sender,destination,stamp)
                 raise cherrypy.HTTPRedirect('/showUserPage')
 
         except urllib2.URLError, exception:
-            saveErrorMessage(sender,destination,stamp)
+            saveErrorFile(sender,destination,stamp)
             raise cherrypy.HTTPRedirect('/showUserPage')
     except KeyError:
-        saveErrorMessage(sender,destination,stamp)
+        saveErrorFile(sender,destination,stamp)
         raise cherrypy.HTTPRedirect('/showUserPage')
 
 
@@ -408,6 +410,8 @@ def refreshChat():
         picture = str(row[0])
 
     page = ''
+
+
     #Compile the chat history between sender and destination in order
     dbFilename = workingDir + "/db/messages.db"
     f = open(dbFilename,"r")
@@ -421,7 +425,7 @@ def refreshChat():
 
         #Logic for determining which message goes on which side
         if (str(row[1]) == destination):
-            page += ''
+            page += 'd'
             page += '<div class = "user-photo"><img src = "'+picture+ '"></div>'
             if (str(row[2]) == '1'):
                 page +=  addEmbeddedViewer(str(row[0]))
@@ -429,9 +433,10 @@ def refreshChat():
                 page += '<div class = "chat-message">' + str(row[0]) + '</div>'
             page += '</div>;'
             sender = 'friend'
+            print 'MESSAGE IS FINE HERE'
 
         else:
-            page += ''
+            page += 's'
             if (str(row[2]) == '1'):
                 page +=  addEmbeddedViewer(str(row[0]))
             else: 
@@ -444,7 +449,7 @@ def refreshChat():
     conn.commit()
     conn.close()
 
-    output_dict = {'newChat' : page , 'newMessage' : str(cherrypy.session.get('newMessage','')), 'sender' : sender}
+    output_dict = {'newChat' : page, 'sender' : sender}
     out = json.dumps(output_dict)
 
     return out   

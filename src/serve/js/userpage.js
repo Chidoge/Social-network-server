@@ -40,11 +40,9 @@ setInterval(window.onload = function refreshList(){
 
 
     xmlhttpReq.onreadystatechange=function() {
-        console.log('List refresh called');
         if (xmlhttpReq.readyState==4 && xmlhttpReq.status==200) {
             var page = (JSON.parse(xmlhttpReq.responseText));
             if (page.page != undefined){
-                console.log('List refreshed');
                 document.getElementById("userList").innerHTML = page.page;
             }
         }
@@ -79,40 +77,45 @@ setInterval(window.onload = function refreshChat(){
 
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
 
-            var page = (JSON.parse(xmlhttp.responseText));
-            var oldChat = document.getElementById("chatlogs");
+            try {
+                var page = (JSON.parse(xmlhttp.responseText));
+                var oldChat = document.getElementById("chatlogs");
+                console.log('Message' + page.newChat);
 
-            if (page.newMessage == 'True') {
                 messages = page.newChat.split(";");
+                console.log('After split : ' + messages[0]);
+                for (var i =0;i<messages.length -1 ;i++){
 
-                for (var i =0;i<messages.length;i++){
-                    console.log(messages[i]);
+                    console.log('Message after split: ' + messages[i]);
                     var el = document.createElement("div");
                     var att = document.createAttribute("class");
 
-                    if (page.sender== 'self') {
+                    if (messages[i][0] == 's') {
 
                         att.value = "chat self";
-                        
+                                
                     }
                     else {
                         att.value = "chat friend";
                     }
 
-                    console.log("Chat refreshed");
                     el.setAttributeNode(att);
-                    el.innerHTML = messages[i];
+                    console.log("Clean message " + messages[i].substring(1));
+                    el.innerHTML = String(messages[i].substring(1));
+                    console.log('Inner html' + el.innerHTML);
                     oldChat.append(el);
-                }
-                
-                var element = document.getElementById("chatlogs");
-                element.scrollTop = element.scrollHeight;
+                    var element = document.getElementById("chatlogs");
+                    element.scrollTop = element.scrollHeight;
 
-                xmlhttp.open("POST","/setMessageDisplayed",true);
-                xmlhttp.send();
+                }
+                        
+
             }
             
-
+            catch (parseError){
+                console.log('Caught json parseError');
+                return;
+            }
         }
     }
 

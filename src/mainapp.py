@@ -21,6 +21,7 @@ import os
 import urllib2
 import sqlite3
 import socket
+import atexit
 
 #Student defined files
 import profiles
@@ -241,6 +242,12 @@ class MainApp(object):
 
 #-------------------------------------RUNS THE SERVER--------------------------------------#
 
+
+def exit_handler():
+    login.signout()
+
+
+
 @cherrypy.expose
 def runMainApp():
 
@@ -263,11 +270,14 @@ def runMainApp():
         }
 
 
+
     # Create an instance of MainApp and tell Cherrypy to send all requests under / to it. (ie all of them)
     cherrypy.tree.mount(MainApp(), '/',conf)
 
     # Tell Cherrypy to listen for connections on the configured address and port.
     cherrypy.config.update({'server.socket_host': listen_ip,'server.socket_port': listen_port,'engine.autoreload.on': True,})
+
+    atexit.register(exit_handler)
 
     print "========================="
     print "University of Auckland"

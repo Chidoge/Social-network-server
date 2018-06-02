@@ -63,7 +63,6 @@ def signout():
         username = cherrypy.session['username']
         hashedPW = cherrypy.session['password']
 
-        threading.Thread.daemon = True
         #Call API to log off
         r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + username + "&password=" + hashedPW + "&enc=0")
         response = r.read()
@@ -71,6 +70,7 @@ def signout():
         #Successful log off
         if (response[0] == '0'):
             cherrypy.lib.sessions.expire()
+            stopThread()
             raise cherrypy.HTTPRedirect('/')
 
         #Error logging off
@@ -127,7 +127,9 @@ def startThread():
 
     threading.Timer(40,reportToServer).start()
 
-   
+def stopThread():
+
+    thread.daemon = True
 
 def reportToServer():
 
