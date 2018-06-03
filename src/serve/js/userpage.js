@@ -9,6 +9,7 @@ function init() {
 
 }
 
+/* Gets the user list on page start up */
 function getList() {
 
     if (window.XMLHttpRequest) {
@@ -30,8 +31,7 @@ function getList() {
     xmlhttp.send();
 }
 
-
-
+/* Continues to refresh the list */
 setInterval(window.onload = function refreshList(){
 
     if (window.XMLHttpRequest) {
@@ -54,6 +54,7 @@ setInterval(window.onload = function refreshList(){
 },5000);
 
 
+/* Calls the send message function in python */
 function sendMessage() {
 
     var text = document.getElementById("textForm");
@@ -66,6 +67,51 @@ function sendMessage() {
 }
 
 
+function showMessageReceipt() {
+
+    var snackBar = document.getElementById('messageReceipt');
+
+    snackBar.className = "show";
+
+    setTimeout(function() {
+        snackBar.className = snackBar.className.replace("show","");
+    },1500);
+}
+
+function sendFile(){
+
+    var file = document.querySelector('#fileForm').files[0];
+    fileData = getBase64(file);
+}
+
+
+function getBase64(file) {
+
+    var reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    reader.onload = function () {
+
+
+        var fileData = reader.result;
+        var mimetype = reader.result;
+        console.log(reader.result);
+        var index = fileData.indexOf(",");
+        var indexColon = mimetype.indexOf(":");
+        var indexSemi = mimetype.indexOf(";");
+
+        fileData = fileData.substring(index + 1);
+        mimetype = mimetype.substring(indexColon+1,indexSemi);
+
+        xmlhttp.open("POST","/sendFile",true);
+        xmlhttp.setRequestHeader("Content-Type", "application/json");
+        var data = JSON.stringify({'fileData' : fileData , 'mimetype' : mimetype});
+        xmlhttp.send(data);
+   };
+
+}
+
+/* Continues to refresh chat box */
 setInterval(window.onload = function refreshChat(){
 
     if (window.XMLHttpRequest) {
@@ -80,19 +126,17 @@ setInterval(window.onload = function refreshChat(){
             try {
                 var page = (JSON.parse(xmlhttp.responseText));
                 var oldChat = document.getElementById("chatlogs");
-                console.log('Message' + page.newChat);
-
+                var messageSent = false;
                 messages = page.newChat.split(";");
-                console.log('After split : ' + messages[0]);
                 for (var i =0;i<messages.length -1 ;i++){
 
-                    console.log('Message after split: ' + messages[i]);
                     var el = document.createElement("div");
                     var att = document.createAttribute("class");
 
                     if (messages[i][0] == 's') {
 
                         att.value = "chat self";
+                        messageSent = true;
                                 
                     }
                     else {
@@ -100,16 +144,15 @@ setInterval(window.onload = function refreshChat(){
                     }
 
                     el.setAttributeNode(att);
-                    console.log("Clean message " + messages[i].substring(1));
                     el.innerHTML = String(messages[i].substring(1));
-                    console.log('Inner html' + el.innerHTML);
                     oldChat.append(el);
                     var element = document.getElementById("chatlogs");
                     element.scrollTop = element.scrollHeight;
-
                 }
                         
-
+                if (messageSent == true){
+                    showMessageReceipt();
+                }
             }
             
             catch (parseError){
@@ -123,3 +166,34 @@ setInterval(window.onload = function refreshChat(){
     xmlhttp.send();
 
 },1000)
+
+
+setInterval(window.onload = function notify() {
+
+    if (window.XMLHttpRequest) {
+        xmlhttp = new XMLHttpRequest();
+    }
+
+
+    xmlhttp.onreadystatechange=function() {
+
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            try {
+                var notification = (JSON.parse(xmlhttp.responseText));
+                if (notification.newMessage == 'True'){
+                    var notiBar = document.getElementById('notiBar');
+                    notiBar.innerHTML = notification.messageFrom;
+                }
+            }
+            catch (parseError) {
+                console.log('Caught json parse error');
+            }
+           
+        }
+    }
+    
+
+    xmlhttp.open("GET","/notify", true);
+    xmlhttp.send();
+
+},5000)

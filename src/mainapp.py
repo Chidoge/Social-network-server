@@ -201,19 +201,16 @@ class MainApp(object):
         else:
             raise cherrypy.HTTPRedirect('/showUserPage')
 
-    @cherrypy.expose
-    def setMessageDisplayed(self):
-
-        cherrypy.session['newMessage'] = False
-
 
     #Calls other node's /receiveFile API
+    @cherrypy.tools.json_in()
     @cherrypy.expose
-    def sendFile(self,fileData):
-        if (fileData != ''):
-            return communication.sendFile(fileData)
-        else:
-            raise cherrypy.HTTPRedirect('/showUserPage')
+    def sendFile(self):
+
+        data = cherrypy.request.json
+        fileData = data['fileData']
+        mimetype = data['mimetype']
+        communication.sendFile(fileData,mimetype)
 
 
     #Public(Common) API for receiving message

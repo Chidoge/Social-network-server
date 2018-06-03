@@ -6,6 +6,7 @@
 		<style  rel="stylesheet" type = "text/css">
 			@import url("/static/css/userpageStyles.css");
 			@import url("/static/css/chatboxStyles.css");
+			@import url("/static/css/snackbarStyles.css");
 		</style>
 		
 	</head>
@@ -20,6 +21,9 @@
 				<div style ="float:left">
 					<form action = "/viewOwnProfile" method = "post">
 					<button type="submit">View/Edit My Profile</button></form>
+				</div>
+				<div id = "messageReceipt">
+					<h>Message Sent</h>
 				</div>
 				<div style = "float:right">
 					<form action = "/signout" method = "post">

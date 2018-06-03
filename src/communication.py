@@ -25,6 +25,11 @@ def receiveMessage(data):
         #Check if message is encrypted
         encryption = data.get('encryption','0')
 
+        #Does not support encryption
+        if (encryption != '0'):
+            return '9'
+
+
         #Prepare database for storing message    
         workingDir = os.path.dirname(__file__)
         dbFilename = workingDir + "/db/messages.db"
@@ -46,10 +51,6 @@ def receiveMessage(data):
 
         return '1: Missing Compulsory Field'
 
-    cherrypy.session['newMessage'] = 'True'
-        
-
-
 
 
 #Calls the destination's /receiveMessage API to send a message to them
@@ -58,6 +59,7 @@ def sendMessage(message):
 
     #Check session
     try:
+
         sender = cherrypy.session['username']
         destination = cherrypy.session['destination']
         stamp = str(time.time())
@@ -82,15 +84,13 @@ def sendMessage(message):
 
                 #Show error if ping response is invalid
                 if (len(pingResponse) == 0 or pingResponse[0] != '0'):
-                    saveErrorMessage(sender,destination,stamp)
+                    return
 
             except urllib2.URLError, exception:
-                saveErrorMessage(sender,destination,stamp)
+                return
 
             
-
-
-            #Construct the URL for calling the /receiveFile API of the destination
+            #Construct the URL for calling the /receiveMessage API of the destination
             url = "http://%s:%s/receiveMessage" % (ip,port)
 
             #Put compulsory arguments into output dictionary, then json encode it
@@ -104,18 +104,18 @@ def sendMessage(message):
 
                 if (len(response) != 0 and response[0] == '0'):
                     saveMessage(message,sender,destination,stamp,'0')
+                    return
                 else:
-                    saveErrorMessage(sender,destination,stamp)
+                    return
 
             except urllib2.URLError, exception:
-                saveErrorMessage(sender,destination,stamp)
+                return
 
 
     except KeyError:
 
-        return 'Session expired'
+        raise cherrypy.HTTPRedirect('/')
 
-    cherrypy.session['newMessage'] = 'True'
 
 
 #Function which locally stores the messages being sent by current user
@@ -139,7 +139,7 @@ def saveMessage(message,sender,destination,stamp,isFile):
 
 
 #Used to send a file which is uploaded using html file upload
-def sendFile(fileData):
+def sendFile(fileData,mime_type):
 
 
     #Check user session
@@ -152,52 +152,42 @@ def sendFile(fileData):
         stamp = str(int(time.time()))
 
         #Guess an extension for the file type
-        extension = mimetypes.guess_extension(str(fileData.type),strict=True)
+        extension = mimetypes.guess_extension(str(mime_type),strict=True)
 
         #Prepare file path to store on server
         workingDir = os.path.dirname(__file__)
         newfilename = workingDir + "/serve/serverFiles/sent_files/" + sender + stamp + extension
 
-        #Write the uploaded data to a file and store it on the server
-        if fileData.file: 
-            with file(newfilename, 'wb') as outfile:
-                outfile.write(fileData.file.read())
-
-        #Open file and prepare to encode for sending
-        image = open(newfilename, 'rb')
-        imageRead = image.read()
+        decodedFile = base64.decodestring(fileData)
+        file = open(newfilename,"wb")
+        file.write(decodedFile)
 
         #Encode image in base 64
-        encodedFile = base64.b64encode(imageRead)
+        encodedFile = fileData
 
         #Get IP and PORT of destination
         data = users.getUserIP_PORT(destination)
         ip = data['ip']
         port = data['port']
 
-
         #Check if user is online
         try:
             #Ping destination to see if they are online
             url = "http://%s:%s/ping?sender=%s" % (ip,port,sender)
-            pingResponse = urllib2.urlopen(url,timeout=3).read()
+            pingResponse = urllib2.urlopen(url,timeout=2).read()
+
+            #Show error just in case opposite node didn't implement it properly
+            if (len(pingResponse) == 0 or pingResponse[0] != '0'):
+                return
+                #raise cherrypy.HTTPRedirect('/showUserPage')
 
         except urllib2.URLError, exception:
-            saveErrorFile(sender,destination,stamp)
-            raise cherrypy.HTTPRedirect('/showUserPage')
-
-        #Show error if ping response is invalid
-        if (len(pingResponse) == 0 or pingResponse[0] != '0'):
-            saveErrorFile(sender,destination,stamp)
-            raise cherrypy.HTTPRedirect('/showUserPage')
-
-
-        #Guess the mimetype of the file to send
-        content_type = mimetypes.guess_type(imageRead, strict=True)
+            return
+            #raise cherrypy.HTTPRedirect('/showUserPage')
 
 
         #Put compulsory arguments into output dictionary, then json encode it
-        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : sender+stamp+ extension ,'content_type' : content_type,'stamp' :stamp}
+        output_dict = {'sender' : sender,'destination' : destination,'file': encodedFile , 'filename' : sender + stamp + extension ,'content_type' : mime_type,'stamp' :stamp}
         data = json.dumps(output_dict)
 
         #Construct the URL for calling the /receiveFile API of the destination
@@ -214,17 +204,18 @@ def sendFile(fileData):
             if (len(response) !=0 or response[0] == '0'):
 
                 saveMessage('/static/serverFiles/sent_files/'+sender+stamp+extension,sender,destination,stamp,'1')
-                raise cherrypy.HTTPRedirect('/showUserPage')
+                return
+                #raise cherrypy.HTTPRedirect('/showUserPage')
             else:
-                saveErrorFile(sender,destination,stamp)
-                raise cherrypy.HTTPRedirect('/showUserPage')
+                return
+                #raise cherrypy.HTTPRedirect('/showUserPage')
 
         except urllib2.URLError, exception:
-            saveErrorFile(sender,destination,stamp)
-            raise cherrypy.HTTPRedirect('/showUserPage')
+            return
+            #raise cherrypy.HTTPRedirect('/showUserPage')
     except KeyError:
-        saveErrorFile(sender,destination,stamp)
-        raise cherrypy.HTTPRedirect('/showUserPage')
+        return
+        #raise cherrypy.HTTPRedirect('/showUserPage')
 
 
 
@@ -358,30 +349,61 @@ def addEmbeddedViewer(fileSource):
 
 
 
-#Saves the error 'Message/file not sent' and stores locally as message to display to user
-def saveErrorMessage(sender,destination,stamp):
-
-    saveMessage('Message may not have been sent properly, please try again later.',sender,destination,stamp,'0')
-
-def saveErrorFile(sender,destination,stamp):
-
-    saveMessage('File may not have been sent properly, please try again later.',sender,destination,stamp,'0')
-
-
 #API for read receipts
 def acknowledge(data):
 
     try:
+        #Read compulsory fields
         sender = data['sender']
         stamp = data['stamp']
         hashingStandard = str(data['hashing'])
         dataHash = data['hash']
 
-        if (hashingStandard == '0'):
-            pass
 
+        #Grab profile picture of destination to put into chat box
+        workingDir = os.path.dirname(__file__)
+        dbFilename = workingDir + "/db/messages.db"
+        f = open(dbFilename,"r")
+        conn = sqlite3.connect(dbFilename)
+        cursor = conn.cursor()
+        cursor.execute("SELECT Message from Messages WHERE UPI = ? AND Stamp = ?",[sender,stamp])
+        row = cursor.fetchone()
+
+        if (hashingStandard == '0'):
+            if (str(row) == dataHash):
+                return '0'
+            #Hash does not match
+            else:
+                return '7'
+        elif (hashingStandard == '1'):
+            hashedMessage = hashlib.sha256(str(row)).hexdigest()
+            if (hashedMessage == dataHash):
+                return '0'
+            #Hash does not match
+            else:
+                return '7'
+        elif (hashingStandard == '2'):
+            hashedMessage = hashlib.sha256(str(row) + sender).hexdigest()
+            if (hashedMessage == dataHash):
+                return '0'
+            #Hash does not match
+            else:
+                return '7'
+        elif (hashingStandard == '3'):
+            hashedMessage = hashlib.sha512(str(row) + sender).hexdigest()
+            if (hashedMessage == dataHash):
+                return '0'
+            #Hash does not match
+            else:
+                return '7'
+
+        #Hashing standard not supported
+        else:
+            return '10'
+
+    #Missing compulsory field
     except KeyError:
-        return '1 Missing Compulsory Field'
+        return '1'
 
 
 def refreshChat():
@@ -417,7 +439,7 @@ def refreshChat():
     f = open(dbFilename,"r")
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
-    cursor.execute("SELECT Message,Sender,isFile FROM MessageBuffer WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
+    cursor.execute("SELECT Message,Sender,isFile,Stamp FROM MessageBuffer WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
     rows = cursor.fetchall()
 
     #For each line of dialogue, add to the chat box
@@ -433,7 +455,7 @@ def refreshChat():
                 page += '<div class = "chat-message">' + str(row[0]) + '</div>'
             page += '</div>;'
             sender = 'friend'
-            print 'MESSAGE IS FINE HERE'
+            #acknowledgeMessage(str(row[0]),destination,str(row[2]),str(row[3]))
 
         else:
             page += 's'
@@ -453,3 +475,44 @@ def refreshChat():
     out = json.dumps(output_dict)
 
     return out   
+
+
+#When calling other node's acknowledge
+#We will use sha-256 hashing with username as salt
+def acknowledgeMessage(message,sender,stamp,isFile):
+
+
+    #If the message is a file, need to open actual file before hashing
+    if (isFile == '1'):
+
+        #Open file
+        workingDir = os.path.dirname(__file__)
+        filename = workingDir + message
+        f = open(filename)
+        fileRead = f.read()
+
+        #Hash the file
+        hashData = hashlib.sha512(fileRead + sender)
+
+    else:
+
+        #Hash the message
+        hashData = hashlib.sha512(message + sender)
+
+
+    #Prepare to json encode the data
+    output_dict = {'sender' : sender, 'hashing' : '3', 'hash' : hashData, 'stamp' : stamp }
+    data = json.dumps(output_dict)
+
+    #Get ip and port to construct URL
+    userInfo  = users.getUserIP_PORT(destination)
+    ip = userInfo['ip']
+    port = userInfo['port']
+
+    #Call sender's acknowledge
+    url = "http://%s:%s/acknowledge" % (ip,port)
+    req = urllib2.Request(url,data,{'Content-Type':'application/json'})
+
+    #For now, disregard the error code returned
+    response = urllib2.urlopen(req).read()
+

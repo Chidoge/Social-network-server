@@ -5,9 +5,9 @@
 					<textarea input type = "submit" name = "message"  onkeydown="if (event.keyCode == 13) {if(document.getElementById('textForm').value != '')sendMessage(); return false; }"></textarea>
 				</form>
 				<button onclick = "sendMessage()">Send</button>
-				<form action="/sendFile" method="post" enctype="multipart/form-data">
-	  				<input type="file" name="fileData">
-	  			<button>Upload</button></form>
+				<form>
+	  				<input type="file" method="post" id = "fileForm" enctype="multipart/form-data">
+	  			<button onclick = "sendFile()" >Upload</button></form>
 			</div>
 		</div>
 	</div>
