@@ -81,7 +81,7 @@ function showMessageReceipt() {
 function sendFile(){
 
     var file = document.querySelector('#fileForm').files[0];
-    fileData = getBase64(file);
+    getBase64(file);
 }
 
 
@@ -107,6 +107,7 @@ function getBase64(file) {
         xmlhttp.setRequestHeader("Content-Type", "application/json");
         var data = JSON.stringify({'fileData' : fileData , 'mimetype' : mimetype});
         xmlhttp.send(data);
+        return false;
    };
 
 }
