@@ -78,6 +78,7 @@ function showMessageReceipt() {
     },1500);
 }
 
+
 function sendFile(){
 
     var file = document.querySelector('#fileForm').files[0];
@@ -102,12 +103,12 @@ function getBase64(file) {
 
         fileData = fileData.substring(index + 1);
         mimetype = mimetype.substring(indexColon+1,indexSemi);
+        var data = JSON.stringify({'fileData' : fileData , 'mimetype' : mimetype});
 
         xmlhttp.open("POST","/sendFile",true);
         xmlhttp.setRequestHeader("Content-Type", "application/json");
-        var data = JSON.stringify({'fileData' : fileData , 'mimetype' : mimetype});
+
         xmlhttp.send(data);
-        return false;
    };
 
 }
@@ -166,7 +167,7 @@ setInterval(window.onload = function refreshChat(){
     xmlhttp.open("GET","/refreshChat", true);
     xmlhttp.send();
 
-},1000)
+},2000)
 
 
 setInterval(window.onload = function notify() {

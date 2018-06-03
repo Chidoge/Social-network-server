@@ -467,7 +467,7 @@ def refreshChat():
             sender = 'self'
 
 
-    cursor.execute("DELETE FROM MessageBuffer")
+    cursor.execute("DELETE FROM MessageBuffer WHERE SENDER = ? OR DESTINATION = ?",[destination,destination])
     conn.commit()
     conn.close()
 
