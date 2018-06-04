@@ -168,11 +168,17 @@ class MainApp(object):
 #-----------------------------------OTHER CLIENT METHODS---------------------------------#
     
 
-#Nothing here at the moment
+
     @cherrypy.expose
     def refreshChat(self):
 
         return communication.refreshChat()
+
+
+    @cherrypy.expose
+    def notify(self):
+
+        return communication.notify()
 
 #-----------------------------------------END----------------------------------------------#
 

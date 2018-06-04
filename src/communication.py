@@ -441,7 +441,7 @@ def refreshChat():
     page = ''
 
 
-    #Compile the chat history between sender and destination in order
+    #Get new messages from destination or sender
     dbFilename = workingDir + "/db/messages.db"
     f = open(dbFilename,"r")
     conn = sqlite3.connect(dbFilename)
@@ -523,3 +523,34 @@ def acknowledgeMessage(message,sender,stamp,isFile):
     #For now, disregard the error code returned
     response = urllib2.urlopen(req).read()
 
+
+#Adds notifications to top of userpage
+def notify():
+
+    sender = cherrypy.session['username']
+    #See if new messages exist 
+    workingDir = os.path.dirname(__file__)
+    dbFilename = workingDir + "/db/messages.db"
+    f = open(dbFilename,"r")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM MessageBuffer WHERE Destination = ?",[sender])
+    rows = cursor.fetchall()
+
+    destination = []
+    if (len(rows) != 0):
+        for row in rows:
+            destination.append(str(row[0]))
+
+        destination = set(destination)
+        messageFrom = ''
+        for element in destination:
+            messageFrom += element + ' '
+
+        output_dict = {'newMessage': 'True', 'destination' : messageFrom}
+        print output_dict
+        return json.dumps(output_dict)
+    else:
+
+        output_dict = {'newMessage': 'False'}
+        return json.dumps(output_dict)

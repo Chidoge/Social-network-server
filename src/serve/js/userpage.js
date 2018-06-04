@@ -184,7 +184,11 @@ setInterval(window.onload = function notify() {
                 var notification = (JSON.parse(xmlhttp.responseText));
                 if (notification.newMessage == 'True'){
                     var notiBar = document.getElementById('notiBar');
-                    notiBar.innerHTML = notification.messageFrom;
+                    notiBar.innerHTML = 'New message(s) from ' + notification.destination;
+                }
+                else {
+                    var notiBar = document.getElementById('notiBar');
+                    notiBar.innerHTML = '';
                 }
             }
             catch (parseError) {

@@ -10,3 +10,5 @@
 /sendMessage to pjha433 failed | Reason : URL Error at /ping, Exception : HTTP Error 404: Not Found	2018-06-04 16:17:59
 /sendMessage to dche192 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 17:11:26
 /viewProfile for dche192 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 17:20:44
+/sendMessage to tcli439 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 17:35:42
+/sendMessage to pjoe652 failed | Reason : URL Error at /receiveMessage, Exception : HTTP Error 500: Internal Server Error	2018-06-04 19:41:00
