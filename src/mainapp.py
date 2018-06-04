@@ -22,6 +22,7 @@ import urllib2
 import sqlite3
 import socket
 import atexit
+import sys
 
 #Student defined files
 import profiles
@@ -240,21 +241,28 @@ class MainApp(object):
 #-------------------------------------------END--------------------------------------------#
 
 
+#--------------LOGIN------------#
 
+#------------END------------------#
 
 
 #-------------------------------------RUNS THE SERVER--------------------------------------#
 
-
 def exit_handler():
-    login.signout()
 
+    filename = path + '/currentUser.txt'
+    f = open(filename,"r")
+    info = f.read().split(";")
+
+    r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + info[0] + "&password=" + info[1] + "&enc=0")
 
 
 @cherrypy.expose
 def runMainApp():
 
     if (len(os.path.dirname(__file__)) != 0 ):
+        global path
+        path = os.path.dirname(__file__)
         conf = {
 
             '/static' : {
@@ -264,6 +272,8 @@ def runMainApp():
             }
         }
     else :
+        global path
+        path = os.getcwd()
         conf = {
 
             '/static' : {
@@ -271,16 +281,14 @@ def runMainApp():
                 'tools.staticdir.dir' : os.getcwd() +"/serve"
             }
         }
-
-
-
+    
+    atexit.register(exit_handler)
     # Create an instance of MainApp and tell Cherrypy to send all requests under / to it. (ie all of them)
     cherrypy.tree.mount(MainApp(), '/',conf)
 
     # Tell Cherrypy to listen for connections on the configured address and port.
     cherrypy.config.update({'server.socket_host': listen_ip,'server.socket_port': listen_port,'engine.autoreload.on': True,})
 
-    atexit.register(exit_handler)
 
     print "========================="
     print "University of Auckland"
@@ -296,3 +304,5 @@ def runMainApp():
 
 #Run the function to start everything
 runMainApp()
+
+atexit.register(exit_handler)

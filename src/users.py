@@ -122,6 +122,17 @@ def logError(errorMessage):
 
 def setNewChatUser(destination):
 
+    #Prepare database for deleting from message buffer
+    workingDir = os.path.dirname(__file__)
+    dbFilename = workingDir + "/db/messages.db"
+    f = open(dbFilename,"r+")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM MessageBuffer WHERE Sender = ?",[str(destination)])
+    conn.commit()
+    conn.close()
+
     cherrypy.session['destination'] = str(destination)
 
     raise cherrypy.HTTPRedirect('/showUserPage')

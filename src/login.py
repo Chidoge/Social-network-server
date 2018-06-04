@@ -9,15 +9,12 @@ import socket
 import thread
 import threading
 import time
+import sys
+from MyThread import MyThread
 
 listen_port = 10010
 
 
-
-gUser = ""
-gPW = ""
-gIP = ""
-gloc = ""
 
 #LOGGING IN AND OUT
 @cherrypy.expose
@@ -38,21 +35,8 @@ def signin(username=None, password=None,location=None):
 
     #Failed log in.
     else:
-        #If failed password attempts exist,limit attempts to 3 then lock user out(currently only sends user back to index).
-        try:
-            attempts = cherrypy.session['attempts']
-
-            if (attempts >= 3 ):
-                raise cherrypy.HTTPRedirect('/')
-
-            else:
-                cherrypy.session['attempts'] = attempts + 1
-                raise cherrypy.HTTPRedirect('/')
-
-        #First attempt
-        except KeyError:
-            cherrypy.session['attempts'] = 1
-            raise cherrypy.HTTPRedirect('/')
+        raise cherrypy.HTTPRedirect('/')
+        
 
 #Log out API
 @cherrypy.expose
@@ -62,7 +46,7 @@ def signout():
     try:
         username = cherrypy.session['username']
         hashedPW = cherrypy.session['password']
-
+        thread.stop()
         #Call API to log off
         r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + username + "&password=" + hashedPW + "&enc=0")
         response = r.read()
@@ -70,7 +54,6 @@ def signout():
         #Successful log off
         if (response[0] == '0'):
             cherrypy.lib.sessions.expire()
-            stopThread()
             raise cherrypy.HTTPRedirect('/')
 
         #Error logging off
@@ -94,6 +77,7 @@ def authoriseUserLogin(username,password,location):
     #Hash user's password
     hashedPW = hashlib.sha256(password+username).hexdigest()
 
+    url = "http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip="+hostIP+"&port="+str(listen_port)+"&location="+location
     #Call API to request a log in.
     r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + username + "&password=" + hashedPW + "&ip="+hostIP+"&port="+str(listen_port)+"&location="+location)
 
@@ -105,41 +89,30 @@ def authoriseUserLogin(username,password,location):
 
         cherrypy.session['username'] = username
         cherrypy.session['password'] = hashedPW
-
-        global gUser,gPW,gIP,gloc
-
-        gUser = username
-        gPW = hashedPW
-        gIP = hostIP
-        gloc = location
+        saveUser(username,hashedPW)
         
-        startThread()
+        reportToServer(url)
 
-        return 0
+        return '0'
     else :
-        return 1
+        return '1'
 
 
+def reportToServer(url):
 
-
-
-def startThread():
-
-    threading.Timer(40,reportToServer).start()
-
-def stopThread():
-
+    global thread
+    thread = MyThread()
     thread.daemon = True
+    thread.setURL(url)
+    thread.start()
 
-def reportToServer():
+def saveUser(username,hashedPW):
+
+    #Save the current user globally so we can log off at program exit
+    workingDir = os.path.dirname(__file__)
+    filename = workingDir + '/currentUser.txt'
 
 
-    threading.Timer(40, reportToServer).start()
-
-    hostIP = urllib2.urlopen('https://api.ipify.org').read()
-
-    r = urllib2.urlopen("http://cs302.pythonanywhere.com/report?username=" + gUser + "&password=" + gPW + "&ip="+gIP+"&port="+str(listen_port)+"&location="+gloc).read()
-
-    print r
-    
+    with open(filename, 'w') as file:
+        file.write(username +";"+hashedPW)
 
