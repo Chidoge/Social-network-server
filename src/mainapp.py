@@ -194,7 +194,7 @@ class MainApp(object):
     @cherrypy.expose
     def ping(self,sender):
 
-        return '0'
+        return communication.ping(sender)
 
 
     #Calls other node's /receiveMessage API
@@ -248,12 +248,12 @@ class MainApp(object):
 
 #-------------------------------------RUNS THE SERVER--------------------------------------#
 
+#Log off when exiting
 def exit_handler():
 
-    filename = path + '/currentUser.txt'
+    filename = textPath + '/currentUser.txt'
     f = open(filename,"r")
     info = f.read().split(";")
-
     r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + info[0] + "&password=" + info[1] + "&enc=0")
 
 
@@ -261,8 +261,8 @@ def exit_handler():
 def runMainApp():
 
     if (len(os.path.dirname(__file__)) != 0 ):
-        global path
-        path = os.path.dirname(__file__)
+        global textPath
+        textPath = os.path.dirname(__file__)
         conf = {
 
             '/static' : {
@@ -272,8 +272,8 @@ def runMainApp():
             }
         }
     else :
-        global path
-        path = os.getcwd()
+        global textPath
+        textPath = os.getcwd()
         conf = {
 
             '/static' : {

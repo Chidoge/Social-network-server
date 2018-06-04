@@ -12,3 +12,41 @@
 /viewProfile for dche192 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 17:20:44
 /sendMessage to tcli439 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 17:35:42
 /sendMessage to pjoe652 failed | Reason : URL Error at /receiveMessage, Exception : HTTP Error 500: Internal Server Error	2018-06-04 19:41:00
+/sendMessage to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 01:01:10
+/sendMessage to qhen143 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 01:22:21
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 01:26:11
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 01:26:28
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 01:26:29
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 01:26:29
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 01:26:30
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 01:26:31
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 01:26:32
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 01:26:32
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 02:11:00
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 02:11:19
+Rate Limited User : dche192	2018-06-05 02:28:42
+Rate Limited User : dche192	2018-06-05 02:28:48
+Rate Limited User : dche192	2018-06-05 02:28:54
+/sendMessage to dche192 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 02:34:52
+/sendMessage to qhen143 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 02:43:09
+/viewProfile for qhen143 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 02:43:33
+/viewProfile for hyan506 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 02:43:38
+/viewProfile for ylee778 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 02:45:48
+/sendMessage to lcho484 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 02:52:46
+/viewProfile for dfu987 failed | Reason : URL Error at /ping, Exception : <urlopen error [Errno 10061] No connection could be made because the target machine actively refused it>	2018-06-05 03:03:43
+/sendMessage to qhen143 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 03:10:58
+Rate Limited User : dche192	2018-06-05 03:13:15
+Rate Limited User : dche192	2018-06-05 03:13:19
+Rate Limited User : dche192	2018-06-05 03:13:19
+Rate Limited User : dche192	2018-06-05 03:13:20
+Rate Limited User : dche192	2018-06-05 03:13:21
+Rate Limited User : dche192	2018-06-05 03:16:08
+Rate Limited User : dche192	2018-06-05 03:16:08
+Rate Limited User : dche192	2018-06-05 03:16:08
+Rate Limited User : dche192	2018-06-05 03:16:10
+Rate Limited User : dche192	2018-06-05 03:16:10
+Rate Limited User : dche192	2018-06-05 03:16:10
+Rate Limited User : dche192	2018-06-05 03:16:11
+Rate Limited User : dche192	2018-06-05 03:16:12
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 03:28:07
+/sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 03:28:09

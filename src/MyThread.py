@@ -19,17 +19,18 @@ class MyThread(Thread):
 
     def run(self):
 
-        while not self._stop_event.wait(2):
+        while not self._stop_event.wait(40):
             hostIP = urllib2.urlopen('https://api.ipify.org').read()
     	    r = urllib2.urlopen(thisURL).read()
     	    print r
-            # call a function
 
     def stop(self):
-    	
+
     	self._stop_event.set()
-    	
+
 
     def setURL(self,url):
     	global thisURL
     	thisURL = url
+
+

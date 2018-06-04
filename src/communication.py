@@ -22,6 +22,11 @@ def receiveMessage(data):
         message = data['message']
         stamp = data['stamp']
 
+        isRateLimited = checkRateLimit(sender)
+        if (isRateLimited == '1'):
+            users.logError('Rate Limited User : %s' % sender)
+            return '11'
+
         #Check if message is encrypted
         encryption = data.get('encryption','0')
 
@@ -136,7 +141,16 @@ def saveMessage(message,sender,destination,stamp,isFile):
     conn.close()
 
 
+def ping(sender):
 
+    isRateLimited = checkRateLimit(sender)
+    if (isRateLimited == '1'):
+        users.logError('Rate Limited User : %s' % sender)
+        return '11'
+    else :
+        return '0'
+
+    
 #Used to send a file which is uploaded using html file upload
 def sendFile(fileData,mime_type):
 
@@ -232,13 +246,18 @@ def receiveFile(data):
         fileIn = data['file']
         filenameIn = data['filename']
         content_type = data['content_type']
-        stamp = str(int(data['stamp']))
+        stamp = str(int(float(str(data['stamp']))))
 
         #Open image for sending
         workingDir = os.path.dirname(__file__)
 
-        #Guess extension from provided mime type
-        extension = mimetypes.guess_extension(content_type)
+        #Get extension from filename
+        index = filenameIn.rfind('.')
+        if (index != -1):
+            extension = filenameIn[index:]
+        else:
+            extension = mimetypes.guess_extension(content_type)
+
         name = sender + stamp
 
         #Decode the file coming in and store it on the server
@@ -257,6 +276,44 @@ def receiveFile(data):
     #Error code
     except KeyError:
         return '1 Missing Compulsory Field'
+
+
+def checkRateLimit(sender):
+
+    workingDir = os.path.dirname(__file__)
+    dbFilename = workingDir + "/db/userinfo.db"
+    f = open(dbFilename,"r+")
+    conn = sqlite3.connect(dbFilename)
+    cursor = conn.cursor()
+    cursor.execute("SELECT lastLimit,requestsPastMinute FROM UserList WHERE UPI = ?",[sender])
+    row = cursor.fetchall()
+
+    if (len(row)==0):
+        #Do not trust anyone not on userlist
+        #Return rate limited error code
+        return '1'
+    else:
+        if (time.time()- float(str(row[0][0])) > 60):
+            cursor.execute("UPDATE UserList SET lastLimit = ?,requestsPastMinute = ? WHERE UPI = ?",[str(time.time()),'1',sender])
+            conn.commit()
+            conn.close()
+            return '0'
+        else:
+            #Row 1 is the requests in the past minute
+            if (int(str(row[0][1])) < 60):
+                cursor.execute("UPDATE UserList SET requestsPastMinute = ? WHERE UPI = ?",[str(int(str(row[0][1])) + 1),sender])
+                conn.commit()
+                conn.close()
+                return '0'
+            else:
+                return '1'
+
+
+
+
+
+
+
 
 
 #Method for returning chat history between two users in html format
@@ -482,6 +539,7 @@ def refreshChat():
     out = json.dumps(output_dict)
 
     return out   
+
 
 
 #When calling other node's acknowledge

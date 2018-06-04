@@ -47,6 +47,8 @@ def signout():
         username = cherrypy.session['username']
         hashedPW = cherrypy.session['password']
         thread.stop()
+
+        
         #Call API to log off
         r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + username + "&password=" + hashedPW + "&enc=0")
         response = r.read()
