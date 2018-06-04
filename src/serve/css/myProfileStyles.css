@@ -42,6 +42,7 @@ button:hover {
     float : right;
     width : 15%;
 }
+
 img {
     width:auto;
     height:auto;
@@ -55,26 +56,12 @@ img {
 }
 
 
-
-.profile{
-
-}
-
-.editProfile{
-
-}
-
-.container {
-    padding: 15px;
-}
-
-
 .modal {
     display: none;
     position: fixed;
-    left : 0;
+    left : 30%;
     top : 5%;
-    width: 35%;
+    width: 50%;
     height: 80%;
 }
 

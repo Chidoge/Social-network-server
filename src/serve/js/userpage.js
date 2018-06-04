@@ -51,7 +51,7 @@ setInterval(window.onload = function refreshList(){
     xmlhttpReq.open("GET","/refreshUserList", true);
     xmlhttpReq.send();
 
-},5000);
+},10000);
 
 
 /* Calls the send message function in python */
@@ -104,7 +104,7 @@ function getBase64(file) {
         fileData = fileData.substring(index + 1);
         mimetype = mimetype.substring(indexColon+1,indexSemi);
         var data = JSON.stringify({'fileData' : fileData , 'mimetype' : mimetype});
-
+        
         xmlhttp.open("POST","/sendFile",true);
         xmlhttp.setRequestHeader("Content-Type", "application/json");
 

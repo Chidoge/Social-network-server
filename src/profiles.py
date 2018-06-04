@@ -36,17 +36,16 @@ def viewProfile(destination):
         try:
             #Ping destination to see if they are online
             url = "http://%s:%s/ping?sender=%s" % (ip,port,username)
-            pingResponse = urllib2.urlopen(url,timeout=3).read()
+            pingResponse = urllib2.urlopen(url,timeout=2).read()
 
         except urllib2.URLError, exception:
+            users.logError("/viewProfile for %s failed | Reason : URL Error at /ping, Exception : %s" % (profile_username,exception))
             return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
-            raise cherrypy.HTTPRedirect('/showUserPage')
 
         #Show error if ping response is invalid
         if (len(pingResponse) == 0 or pingResponse[0] != '0'):
+            users.logError("/viewProfile for %s failed | Reason : Ping response was not 0, Response : %s" % (profile_username,pingResponse))
             return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
-            raise cherrypy.HTTPRedirect('/showUserPage')
-
 
         #Construct URL for requesting profile
         url = "http://"+ip+":"+port+"/getProfile"
@@ -61,8 +60,8 @@ def viewProfile(destination):
         #Attempt to retrieve profile.
         try:
 
-            #Load json encoded profile. Give 4 second for other side to respond.
-            data = urllib2.urlopen(req,timeout= 4).read()
+            #Load json encoded profile. Give 3 seconds for other side to respond.
+            data = urllib2.urlopen(req,timeout= 3).read()
 
             #Make sure object being returned is a json object
             try:
@@ -75,6 +74,7 @@ def viewProfile(destination):
                 location = loaded.get('location','')
                 lastUpdated = loaded.get('lastUpdated','0')
                 picture = str(loaded.get('picture','None'))
+
 
                 #Open database to store the user profile information
                 workingDir = os.path.dirname(__file__)
@@ -110,12 +110,21 @@ def viewProfile(destination):
                         cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?",["/static/serverFiles/profile_pictures/"+profile_username+".jpg",profile_username])
                     except urllib2.URLError, exception:
                         cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?",['None',profile_username])
+                        users.logError("Failed to retrieve profile picture in /viewProfile for %s | Reason : URL Error during retrieval, URL Error : %s" % (profile_username,exception))
 
                 #Save database changes
                 conn.commit()
                 conn.close()
 
-                return data
+                page = readHTML('/html/otherProfile.html')
+                page = page.replace('DESTINATION_HERE',destination)
+                page = page.replace('NAME_HERE',name)
+                page = page.replace('POSITION_HERE',position)
+                page = page.replace('DESCRIPTION_HERE',description)
+                page = page.replace('LOCATION_HERE',location)
+                page = page.replace('PICTURE_HERE',picture)
+
+                return page
 
             except ValueError:
 
@@ -131,6 +140,12 @@ def viewProfile(destination):
 
         return 'Session Expired'
 
+def readHTML(htmlPath):
+
+     workingDir = os.path.dirname(__file__)
+     filename = workingDir + htmlPath
+     f = open(filename,"r")
+     return f.read()
 
 
 #Allows other users to request a profile from this node
@@ -256,7 +271,7 @@ def saveEdit(name,position,description,location):
         conn.commit()
         conn.close()
 
-        raise cherrypy.HTTPRedirect('/showUserPage')
+        raise cherrypy.HTTPRedirect('/viewOwnProfile')
 
     #Redirect to index
     except KeyError:

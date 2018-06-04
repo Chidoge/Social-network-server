@@ -6,7 +6,8 @@ import os
 import urllib2
 import sqlite3
 import communication
-
+import time
+import datetime
 
 #Shows main page after login
 def showUserPage():
@@ -81,7 +82,6 @@ def saveOnlineUsers():
         conn.close()
 
     except KeyError:
-
         raise cherrypy.HTTPRedirect('/')
 
 
@@ -95,7 +95,6 @@ def getUserIP_PORT(destination):
     conn = sqlite3.connect(dbFilename)
     cursor = conn.cursor()
 
-
     #Find ip and port - Should always exist, since this method is only called when this user is saved.
     cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = ?",[destination])
     row = cursor.fetchall()
@@ -108,6 +107,18 @@ def getUserIP_PORT(destination):
     return info
 
 
+def logError(errorMessage):
+
+    workingDir = os.path.dirname(__file__)
+    filename = workingDir + '/errorlog.txt'
+    stamp = time.time()
+    value = datetime.datetime.fromtimestamp(stamp)
+    timestamp = value.strftime('%Y-%m-%d %H:%M:%S')
+
+    with open(filename, 'a') as file:
+        file.write(errorMessage + '\t' + timestamp + '\n')
+
+
 
 def setNewChatUser(destination):
 
@@ -116,28 +127,19 @@ def setNewChatUser(destination):
     raise cherrypy.HTTPRedirect('/showUserPage')
 
 
-@cherrypy.expose
 def refreshUserList():
 
     username = cherrypy.session['username']
 
-    #Get base html for page
-    workingDir = os.path.dirname(__file__)
-    filename = workingDir + "/html/userpage.html"
-    f = open(filename,"r")
-    #page = f.read()
-    f.close()
-
     #Call API to check for other online users
-    r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'] + "&json=1")
-    response = r.read()
+    response = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'] + "&json=1").read()
     users = json.loads(response)
 
     #Assemble online user list in html format.
     page = ''
     for i in users:
 
-        destination= users[i]['username']
+        destination = users[i]['username']
         #No need to show current user their own profile
         if (destination != username):
             page += '<div class = onlineUser>'
@@ -154,35 +156,3 @@ def refreshUserList():
 
     return out
 
-def getList():
-
-    username = cherrypy.session['username']
-
-    #Get base html for page
-    workingDir = os.path.dirname(__file__)
-    filename = workingDir + "/html/userpage.html"
-    f = open(filename,"r")
-    #page = f.read()
-    f.close()
-
-    #Call API to check for other online users
-    r = urllib2.urlopen("http://cs302.pythonanywhere.com/getList?username=" + username + "&password=" + cherrypy.session['password'] + "&json=1")
-    response = r.read()
-    users = json.loads(response)
-
-    #Assemble online user list in html format.
-    page = ''
-    for i in users:
-
-        destination= users[i]['username']
-        #No need to show current user their own profile
-        if (destination != username):
-            page += '<div class = onlineUser>'
-            page += '<p>' +  str(destination) + '</p>' 
-            page += '<form action ="/chatUser?destination=' + str(destination) +'"method="post">'
-            page += '<button type="submit">Chat</button></form>'
-            page += '<form action ="/viewProfile?destination=' +  str(destination) + '"method="post">'
-            page += '<button type="submit">View Profile</button></form>'
-            page += '</div>'
-
-    return page

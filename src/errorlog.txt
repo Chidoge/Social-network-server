@@ -1,0 +1,12 @@
+/sendMessage to qhen143 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 16:00:33
+/sendFile to rpor545 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 16:01:38
+/viewProfile for qhen143 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 16:01:49
+/sendMessage to mfoo431 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 16:02:05
+/sendMessage to acha932 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 16:08:48
+/viewProfile for lcho484 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 16:16:56
+/viewProfile for acha932 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 16:17:05
+/viewProfile for vli121 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 16:17:10
+/viewProfile for dche192 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 16:17:24
+/sendMessage to pjha433 failed | Reason : URL Error at /ping, Exception : HTTP Error 404: Not Found	2018-06-04 16:17:59
+/sendMessage to dche192 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 17:11:26
+/viewProfile for dche192 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-04 17:20:44

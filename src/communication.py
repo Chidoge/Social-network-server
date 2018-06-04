@@ -29,7 +29,6 @@ def receiveMessage(data):
         if (encryption != '0'):
             return '9'
 
-
         #Prepare database for storing message    
         workingDir = os.path.dirname(__file__)
         dbFilename = workingDir + "/db/messages.db"
@@ -47,29 +46,25 @@ def receiveMessage(data):
 
         return '0'
 
+    #Missing compulsory field
     except KeyError:
-
-        return '1: Missing Compulsory Field'
-
+        return '1'
 
 
 #Calls the destination's /receiveMessage API to send a message to them
 def sendMessage(message):
-
 
     #Check session
     try:
 
         sender = cherrypy.session['username']
         destination = cherrypy.session['destination']
-        stamp = str(time.time())
 
         #Make sure user is typing in a message(cannot just be blank spaces)
         if (message == None or len(message) == 0):
             pass
 
         else :
-
             #Get IP and PORT of destination
             data = users.getUserIP_PORT(destination)
             ip = data['ip']
@@ -80,25 +75,27 @@ def sendMessage(message):
             try:
                 #Ping destination to see if they are online
                 url = "http://%s:%s/ping?sender=%s" % (ip,port,sender)
-                pingResponse = urllib2.urlopen(url,timeout=3).read()
+                pingResponse = urllib2.urlopen(url,timeout=2).read()
 
                 #Show error if ping response is invalid
                 if (len(pingResponse) == 0 or pingResponse[0] != '0'):
+                    users.logError("/sendMessage to %s failed | Reason : Ping response was not 0, Response : %s" % (destination,pingResponse))
                     return
 
             except urllib2.URLError, exception:
+                users.logError("/sendMessage to %s failed | Reason : URL Error at /ping, Exception : %s" % (destination,exception))
                 return
 
-            
             #Construct the URL for calling the /receiveMessage API of the destination
             url = "http://%s:%s/receiveMessage" % (ip,port)
 
             #Put compulsory arguments into output dictionary, then json encode it
+            stamp = str(time.time())
             output_dict = {'sender' :sender,'message':message,'stamp':stamp,'destination':destination}
             data = json.dumps(output_dict)
 
             try:
-                #Put json encoded object into http header
+                #Put json encoded object into http request
                 req = urllib2.Request(url,data,{'Content-Type':'application/json'})
                 response = urllib2.urlopen(req).read()
 
@@ -106,9 +103,11 @@ def sendMessage(message):
                     saveMessage(message,sender,destination,stamp,'0')
                     return
                 else:
+                    users.logError("/sendMessage to %s failed | Reason : /receiveMessage response was not 0, Response : %s" % (destination,response))
                     return
 
             except urllib2.URLError, exception:
+                users.logError("/sendMessage to %s failed | Reason : URL Error at /receiveMessage, Exception : %s" % (destination,exception))
                 return
 
 
@@ -158,11 +157,13 @@ def sendFile(fileData,mime_type):
         workingDir = os.path.dirname(__file__)
         newfilename = workingDir + "/serve/serverFiles/sent_files/" + sender + stamp + extension
 
+        #Store the file locally
         decodedFile = base64.decodestring(fileData)
         file = open(newfilename,"wb")
         file.write(decodedFile)
+        file.close()
 
-        #Encode image in base 64
+        #fileData is passed in as base 64
         encodedFile = fileData
 
         #Get IP and PORT of destination
@@ -176,14 +177,14 @@ def sendFile(fileData,mime_type):
             url = "http://%s:%s/ping?sender=%s" % (ip,port,sender)
             pingResponse = urllib2.urlopen(url,timeout=2).read()
 
-            #Show error just in case opposite node didn't implement it properly
+            #Show error just in case destination didn't implement ping properly
             if (len(pingResponse) == 0 or pingResponse[0] != '0'):
+                users.logError("/sendFile to %s failed | Reason : Ping response was not 0, Response : %s" % (destination,pingResponse))
                 return
-                #raise cherrypy.HTTPRedirect('/showUserPage')
 
         except urllib2.URLError, exception:
+            users.logError("/sendFile to %s failed | Reason : URL Error at /ping, Exception : %s" % (destination,exception))
             return
-            #raise cherrypy.HTTPRedirect('/showUserPage')
 
 
         #Put compulsory arguments into output dictionary, then json encode it
@@ -193,8 +194,9 @@ def sendFile(fileData,mime_type):
         #Construct the URL for calling the /receiveFile API of the destination
         url = "http://%s:%s/receiveFile" % (ip,port)
 
-        #Attempt to call the API, if failed, return error
+        #Attempt to call the API
         try:
+
             #Put json encoded object into http header
             req = urllib2.Request(url,data,{'Content-Type':'application/json'})
             response = urllib2.urlopen(req).read()
@@ -205,17 +207,17 @@ def sendFile(fileData,mime_type):
 
                 saveMessage('/static/serverFiles/sent_files/'+sender+stamp+extension,sender,destination,stamp,'1')
                 return
-                #raise cherrypy.HTTPRedirect('/showUserPage')
             else:
+                users.logError("/sendFile to %s failed | Reason : /receiveFile response was not 0, Response : %s" % (destination,response))
                 return
-                #raise cherrypy.HTTPRedirect('/showUserPage')
 
         except urllib2.URLError, exception:
+            users.logError("/sendFile to %s failed | Reason : URL Error at /receiveFile, Exception : %s" % (destination,response))
             return
-            #raise cherrypy.HTTPRedirect('/showUserPage')
+
     except KeyError:
-        return
-        #raise cherrypy.HTTPRedirect('/showUserPage')
+
+        raise cherrypy.HTTPRedirect('/')
 
 
 
@@ -235,14 +237,19 @@ def receiveFile(data):
         #Open image for sending
         workingDir = os.path.dirname(__file__)
 
+        #Guess extension from provided mime type
+        extension = mimetypes.guess_extension(content_type)
+        name = sender + stamp
+
         #Decode the file coming in and store it on the server
-        filename = workingDir + "/serve/serverFiles/sent_files/" + str(filenameIn)
+        filename = workingDir + "/serve/serverFiles/sent_files/" + name + extension
         decodedFile = base64.decodestring(fileIn)
         file = open(filename, 'wb')
         file.write(decodedFile)
+        file.close()
 
         #Save as text message to display to screen on embedded viewer if possible
-        saveMessage('/static/serverFiles/sent_files/'+str(filenameIn),sender,destination,stamp,'1')
+        saveMessage('/static/serverFiles/sent_files/'+ name + extension,sender,destination,stamp,'1')
 
         #Success code
         return '0'
@@ -325,7 +332,7 @@ def getChatPage(page,sender,destination):
 #Adds an embedded viewer to the chat box, can currently show images,video and audio.
 def addEmbeddedViewer(fileSource):
 
-    if (fileSource.endswith('jpg') or fileSource.endswith('jpe') or fileSource.endswith('png')):
+    if (fileSource.endswith('jpg') or fileSource.endswith('jpe') or fileSource.endswith('png') or fileSource.endswith('gif')):
         page = '<div class = "chat-message-image">'
         page += '<img src="' + fileSource + '">'
         page += '</div>'
