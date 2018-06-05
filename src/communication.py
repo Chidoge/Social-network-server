@@ -323,6 +323,14 @@ def receive_file(data):
 
         #Decode the file coming in and store it on the server
         filename = working_dir + "/serve/serverFiles/sent_files/" + name + extension
+
+        #Make sure incoming file is 5MB or less
+        size_bytes = (len(fileIn) * 3) / 4 - fileIn.count('=', -2)
+        if (size_bytes >= 5000000):
+            #Error code : file size too large
+            return '12'
+
+        #If file size not capped, decode the base64 string
         decoded_file = base64.decodestring(fileIn)
         with open (filename,'wb') as file:
             file.write(decoded_file)

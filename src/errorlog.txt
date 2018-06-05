@@ -123,3 +123,4 @@ Failed to retrieve profile in /view_profile for hpat255 | Reason : URL Error, Ex
 /viewProfile for yqia375 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:36:33
 /viewProfile for ylee778 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:40:50
 /send_message to ylee778 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:41:15
+/send_message to qhen143 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 03:10:55

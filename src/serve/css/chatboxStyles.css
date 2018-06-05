@@ -32,6 +32,11 @@
     background: #d3d3d3;
 }
 
+.note {
+    float :left;
+    color :red;
+    text-align:  center;
+}
 
 .chatlogs {
 
@@ -78,6 +83,10 @@
     left : 1000px;
 }*/
 
+.uploadForm {
+
+    width : 150px;
+}
 .chat .chat-message {
 
     position : sticky;
@@ -195,7 +204,7 @@
     font-family: "Trebuchet MS", Helvetica, sans-serif;
     font-size: 18px;
     background: #fbfbfb;
-    width: 750px;
+    width: 700px;
     height: 50px;
     border: 2px solid #eee;
     border-radius: 3px;
@@ -209,6 +218,7 @@
 
 .chat-form button {
 
+    float : bottom;
     background: #3090C7;
     padding: 5px 15px;
     font-size: 20px;

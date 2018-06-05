@@ -82,7 +82,16 @@ function showMessageReceipt() {
 function sendFile(){
 
     var file = document.querySelector('#fileForm').files[0];
-    sendToServer(file);
+    console.log(file.size)
+    if (file.size/1000000 > 5) {
+        var note = document.getElementById("note")
+        note.innerHTML = 'Max file size is 5MB'
+    }
+    else {
+        var note = document.getElementById("note")
+        note.innerHTML = ''
+        sendToServer(file);
+    }
 }
 
 
