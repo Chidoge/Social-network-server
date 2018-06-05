@@ -27,7 +27,7 @@ function getList() {
         }
     }
 
-    xmlhttp.open("GET","/refreshUserList", true);
+    xmlhttp.open("GET","/refresh_user_list", true);
     xmlhttp.send();
 }
 
@@ -48,7 +48,7 @@ setInterval(window.onload = function refreshList(){
         }
     }
 
-    xmlhttpReq.open("GET","/refreshUserList", true);
+    xmlhttpReq.open("GET","/refresh_user_list", true);
     xmlhttpReq.send();
 
 },10000);
@@ -62,7 +62,7 @@ function sendMessage() {
     console.log(message);
 
     document.getElementById("textForm").reset();
-    xmlhttp.open("POST","/sendMessage?message="+message, true);
+    xmlhttp.open("POST","/send_message?message="+message, true);
     xmlhttp.send();
 }
 
@@ -82,11 +82,11 @@ function showMessageReceipt() {
 function sendFile(){
 
     var file = document.querySelector('#fileForm').files[0];
-    getBase64(file);
+    sendToServer(file);
 }
 
 
-function getBase64(file) {
+function sendToServer(file) {
 
     var reader = new FileReader();
     reader.readAsDataURL(file);
@@ -103,9 +103,9 @@ function getBase64(file) {
 
         fileData = fileData.substring(index + 1);
         mimetype = mimetype.substring(indexColon+1,indexSemi);
-        var data = JSON.stringify({'fileData' : fileData , 'mimetype' : mimetype});
+        var data = JSON.stringify({'file_data' : fileData , 'mime_type' : mimetype});
         
-        xmlhttp.open("POST","/sendFile",true);
+        xmlhttp.open("POST","/send_file",true);
         xmlhttp.setRequestHeader("Content-Type", "application/json");
 
         xmlhttp.send(data);
@@ -120,7 +120,7 @@ setInterval(window.onload = function refreshChat(){
         xmlhttp = new XMLHttpRequest();
     }
 
-
+    console.log('Chat refresh called')
     xmlhttp.onreadystatechange=function() {
 
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
@@ -164,7 +164,7 @@ setInterval(window.onload = function refreshChat(){
         }
     }
 
-    xmlhttp.open("GET","/refreshChat", true);
+    xmlhttp.open("GET","/refresh_chat", true);
     xmlhttp.send();
 
 },2000)

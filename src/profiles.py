@@ -1,3 +1,12 @@
+"""profiles.py
+
+    COMPSYS302 - Software Design
+    Author: Lincoln Choy
+    
+This file contains functions and API's which help with the retrieval,editing and
+display of profiles for the server.
+"""
+
 import cherrypy
 import json
 import mimetypes
@@ -11,8 +20,12 @@ import time
 port = 10010
 
 
-#Call other node's getProfile
-def viewProfile(destination):
+""" This function returns a string of html which is the page that displays information
+    for a requested profile.
+    Input : destination (string, the name of the person's profile to be displayed)
+    Output : page (string, a string of html code to be displayed on the browser)
+    """
+def view_profile(destination):
 
     #Check session
     try:
@@ -20,35 +33,28 @@ def viewProfile(destination):
         username = cherrypy.session['username']
         profile_username = destination
 
-        #Open database
-        workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/userinfo.db"
-        f = open(dbFilename,"r+")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
-
-        userInfo = users.getUserIP_PORT(profile_username)
-        ip = userInfo['ip']
-        port = userInfo['port']
+        user_info = users.get_user_ip_port(profile_username)
+        ip = user_info['ip']
+        port = user_info['port']
 
 
         #Check destination is online
         try:
             #Ping destination to see if they are online
             url = "http://%s:%s/ping?sender=%s" % (ip,port,username)
-            pingResponse = urllib2.urlopen(url,timeout=2).read()
+            ping_response = urllib2.urlopen(url,timeout=2).read()
 
         except urllib2.URLError, exception:
-            users.logError("/viewProfile for %s failed | Reason : URL Error at /ping, Exception : %s" % (profile_username,exception))
+            users.log_error("/viewProfile for %s failed | Reason : URL Error at /ping, Exception : %s" % (profile_username,exception))
             return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
 
         #Show error if ping response is invalid
-        if (len(pingResponse) == 0 or pingResponse[0] != '0'):
-            users.logError("/viewProfile for %s failed | Reason : Ping response was not 0, Response : %s" % (profile_username,pingResponse))
+        if (len(ping_response) == 0 or ping_response[0] != '0'):
+            users.log_error("/viewProfile for %s failed | Reason : Ping response was not 0, Response : %s" % (profile_username,ping_response))
             return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
 
         #Construct URL for requesting profile
-        url = "http://"+ip+":"+port+"/getProfile"
+        url = ("http://%s:%s/getProfile" %(ip,port))
 
         #Encode input arguments into json
         output_dict = {'sender' :username,'profile_username':profile_username}
@@ -68,55 +74,61 @@ def viewProfile(destination):
 
                 loaded = json.loads(data)
                 #Get relevant information from the profile.
-                name = loaded.get('fullname','')
-                position = loaded.get('position','')
-                description = loaded.get('description','')
-                location = loaded.get('location','')
-                lastUpdated = loaded.get('lastUpdated','0')
+                name = loaded.get('fullname','N/A')
+                position = loaded.get('position','N/A')
+                description = loaded.get('description','N/A')
+                location = loaded.get('location','N/A')
+                last_updated = loaded.get('lastUpdated','0')
                 picture = str(loaded.get('picture','None'))
 
+                same = loaded.get('hre,','0')
+                print same
 
                 #Open database to store the user profile information
-                workingDir = os.path.dirname(__file__)
-                dbFilename = workingDir + "/db/userinfo.db"
-                f = open(dbFilename,"r+")
-                conn = sqlite3.connect(dbFilename)
-                cursor = conn.cursor()
-                cursor.execute("SELECT * FROM Profile WHERE UPI = ? ",[profile_username])
+                working_dir = os.path.dirname(__file__)
+                db_filename = working_dir + "/db/userinfo.db"
+
+                with open (db_filename,'r+'):
+                    conn = sqlite3.connect(db_filename)
+                    cursor = conn.cursor()
+
+                cursor.execute("SELECT lastUpdated FROM Profile WHERE UPI = ? ",[profile_username])
                 row = cursor.fetchall()
 
                 #Check if picture is relative or absolute path, and perform 
                 #necessary measures to get (or not get) the picture
                 if ('http' not in picture and '/' in picture):
-                    picture = 'http://'+ip+":"+port+picture
+                    picture = ('http://%s:%s%s' % (ip,port,picture))
 
                 elif('http' in picture):
                     pass
                 else:
                     picture = 'None'
 
-                #Insert new user information if new, otherwise update existing profile.
-                #TODO: ADD lastUpdated implementation
+
+                #Insert new user information if new, otherwise update existing profile
                 if (len(row) == 0):
-                    cursor.execute("INSERT INTO Profile(UPI,Name,Position,Description,Location,Picture,lastUpdated) VALUES (?,?,?,?,?,?,?)",[profile_username,name,position,description,location,picture,lastUpdated])
+                    cursor.execute("INSERT INTO Profile(UPI,Name,Position,Description,Location,Picture,lastUpdated) VALUES (?,?,?,?,?,?,?)",[profile_username,name,position,description,location,picture,last_updated])
                 else:
-                    cursor.execute("UPDATE Profile SET UPI = ?,Name = ?,Position = ?,Description = ?,Location = ?,Picture = ?, lastUpdated = ? WHERE UPI = ?",[profile_username,name,position,description,location,picture,lastUpdated,profile_username])
+                    #If retrieved profile is more updated than the one stored in database, update the profile
+                    if (float(str(row[0][0])) < float(last_updated)):
+                        cursor.execute("UPDATE Profile SET UPI = ?,Name = ?,Position = ?,Description = ?,Location = ?,Picture = ?, lastUpdated = ? WHERE UPI = ?",[profile_username,name,position,description,location,picture,last_updated,profile_username])
 
 
                 if ('http' in picture):
                     #Attempt to save the profile image from the given url.
                     try:
-                        urllib.urlretrieve(picture, workingDir + "/serve/serverFiles/profile_pictures/"+profile_username+".jpg")
+                        urllib.urlretrieve(picture, working_dir + "/serve/serverFiles/profile_pictures/"+profile_username+".jpg")
                         cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?",["/static/serverFiles/profile_pictures/"+profile_username+".jpg",profile_username])
-                    except urllib2.URLError, exception:
+                    except urllib2.URLError,exception:
                         cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?",['None',profile_username])
-                        users.logError("Failed to retrieve profile picture in /viewProfile for %s | Reason : URL Error during retrieval, URL Error : %s" % (profile_username,exception))
+                        users.log_error("Failed to retrieve profile picture in /view_profile for %s | Reason : URL Error during retrieval, URL Error : %s" % (profile_username,exception))
 
                 #Save database changes
                 conn.commit()
                 conn.close()
 
-                page = readHTML('/html/otherProfile.html')
+                page = read_HTML('/html/otherProfile.html')
                 page = page.replace('DESTINATION_HERE',destination)
                 page = page.replace('NAME_HERE',name)
                 page = page.replace('POSITION_HERE',position)
@@ -126,13 +138,13 @@ def viewProfile(destination):
 
                 return page
 
-            except ValueError:
-
+            except TypeError as exception:
+                users.log_error("Failed to retrieve profile picture in /view_profile for %s | Reason : Type Error : %s" % (profile_username,exception))
                 return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
 
         #In case API call fails.
-        except urllib2.URLError, exception:
-
+        except urllib2.URLError,exception:
+            users.log_error("Failed to retrieve profile in /view_profile for %s | Reason : URL Error, Exception : %s" % (profile_username,exception))
             return 'Sorry, we couldn\'t fetch this profile. Please try again later.'
 
 
@@ -140,16 +152,34 @@ def viewProfile(destination):
 
         return 'Session Expired'
 
-def readHTML(htmlPath):
-
-     workingDir = os.path.dirname(__file__)
-     filename = workingDir + htmlPath
-     f = open(filename,"r")
-     return f.read()
 
 
-#Allows other users to request a profile from this node
-def getProfile(data):
+
+        
+""" This helper function returns a string of html
+    Input : html_path (string, relative path of the html)
+    Output : page (string, a string of html code to be displayed on the browser)
+    """
+def read_HTML(html_path):
+
+    working_dir = os.path.dirname(__file__)
+    filename = working_dir + html_path
+
+    with open (filename,'r') as file:
+        page = file.read()
+        file.close()
+
+    return page
+
+
+
+
+
+"""This function(API) allows other users to request profile information for anyone from this client
+    Input : data (dictionary, contains the username of the requested profile and the requester)
+    Output : out (json encoded dictionary, contains information for the requested profile)
+    """
+def get_profile(data):
 
     #Try block; in case the API caller didn't add the compulsory input arguments
     try:
@@ -159,23 +189,23 @@ def getProfile(data):
         sender = data['sender']
 
         #Get user's ip address
-        hostIP = urllib2.urlopen('https://api.ipify.org').read()
+        host_IP = urllib2.urlopen('https://api.ipify.org').read()
         """For internal ip address"""
         #hostIP =socket.gethostbyname(socket.gethostname())
 
         #Open database for extracting profile
-        workingDir = os.path.dirname(__file__) 
-        dbFilename = workingDir + "/db/userinfo.db"
-        f = open(dbFilename,"r")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
+        working_dir = os.path.dirname(__file__) 
+        db_filename = working_dir + "/db/userinfo.db"
+        with open (db_filename,'r'):
+            conn = sqlite3.connect(db_filename)
+            cursor = conn.cursor()
 
         #Read database and see if requested profile exists
         cursor.execute("SELECT Name,Position,Description,Location,Picture,lastUpdated FROM Profile WHERE UPI = ?",[profile_username])
         row = cursor.fetchone()
 
         #Construct URL for image
-        url = "http://" + hostIP + ":" + str(port) +  str(row[4])
+        url = ("http://%s:%s%s" % (host_IP,port,row[4]))
 
         conn.close()
 
@@ -186,13 +216,11 @@ def getProfile(data):
             output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': url,'lastUpdated':row[5]}
 
             #Json encode the output dictionary then return it
-            data = json.dumps(output_dict)
-            return data
+            out = json.dumps(output_dict)
+            return out
 
         else:
-
-            return 'Requested profile does not exist'
-
+            users.log_error("Failed profile retrieval attempt for %s by %s | Reason : Profile does not exist" % (profile_username,sender))
 
     #Return error code 1 : Missing compulsory field
     except KeyError:
@@ -200,7 +228,12 @@ def getProfile(data):
         return '1'
 
 
-def viewOwnProfile():
+
+"""This function returns the profile page for the currently logged in user
+    Input : None
+    Output : page (string, a string of html code to be displayed on the browser)
+    """
+def view_own_profile():
 
     #Check session
     try:
@@ -208,11 +241,12 @@ def viewOwnProfile():
         username = cherrypy.session['username']
 
         #Read database
-        workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/userinfo.db"
-        f = open(dbFilename,"r")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
+        working_dir = os.path.dirname(__file__)
+        db_filename = working_dir + "/db/userinfo.db"
+        with open (db_filename,'r'):
+            conn = sqlite3.connect(db_filename)
+            cursor = conn.cursor()
+
         cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile where UPI = ?",[username])
 
         rows = cursor.fetchall()
@@ -223,14 +257,7 @@ def viewOwnProfile():
         location = str(rows[0][3])
         picture = str(rows[0][4])
 
-
-        #Prepare html
-        workingDir = os.path.dirname(__file__)
-        filename = workingDir + "/html/ownProfile.html"
-        f = open(filename,"r")
-        page = f.read()
-
-
+        page = read_HTML('/html/ownProfile.html')
         page = page.replace('NAME_HERE',name)
         page = page.replace('POSITION_HERE',position)
         page = page.replace('DESCRIPTION_HERE',description)
@@ -241,14 +268,22 @@ def viewOwnProfile():
         page = page.replace('POSITION_FORM',"'"+position+"'")
         page = page.replace('DESCRIPTION_FORM',"'"+description+"'")
         page = page.replace('LOCATION_FORM',"'"+location+"'")
+
         return page
 
     except KeyError:
         raise cherrypy.HTTPRedirect('/')
 
 
-#Function that saves user's profile edits
-def saveEdit(name,position,description,location):
+
+"""This function updates the profile information for the currently logged in user
+    Inputs : name (string)
+            position (string)
+            description (string)
+            location (string)
+    Output : None
+    """
+def save_edit(name,position,description,location):
     
     #Check user session
     try:
@@ -256,11 +291,11 @@ def saveEdit(name,position,description,location):
         username = cherrypy.session['username']  
 
         #Prepare database for writing to
-        workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/userinfo.db"
-        f = open(dbFilename,"r+")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
+        working_dir = os.path.dirname(__file__)
+        db_filename = working_dir + "/db/userinfo.db"
+        with open(db_filename,'r+'):
+            conn = sqlite3.connect(db_filename)
+            cursor = conn.cursor()
 
         #Key for last updated profile
         lastUpdated = str(time.time())
@@ -271,7 +306,7 @@ def saveEdit(name,position,description,location):
         conn.commit()
         conn.close()
 
-        raise cherrypy.HTTPRedirect('/viewOwnProfile')
+        raise cherrypy.HTTPRedirect('/view_own_profile')
 
     #Redirect to index
     except KeyError:
@@ -279,8 +314,12 @@ def saveEdit(name,position,description,location):
         raise cherrypy.HTTPRedirect('/')
 
 
-#Updates user's profile picture
-def editPicture(picture):
+
+"""This function updates the profile picture for the currently logged in user
+    Input : picture (file data type)
+    Output : None
+    """
+def edit_picture(picture):
 
     #Check session
     try:
@@ -290,21 +329,21 @@ def editPicture(picture):
         fileType = mimetypes.guess_type(str(picture))
 
         #Prepare file path to store on server
-        workingDir = os.path.dirname(__file__)
-        newfilename = workingDir + "/serve/serverFiles/profile_pictures/" + username + ".jpg"
+        working_dir = os.path.dirname(__file__)
+        new_filename = working_dir + "/serve/serverFiles/profile_pictures/" + username + ".jpg"
 
         #Write the uploaded data to a file and store it on the server
         if picture.file: 
-            with file(newfilename, 'wb') as outfile:
+            with file(new_filename, 'wb') as outfile:
                 outfile.write(picture.file.read())
 
         #Prepare database for writing to
-        dbFilename = workingDir + "/db/userinfo.db"
-        f = open(dbFilename,"r+")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
+        db_filename = working_dir + "/db/userinfo.db"
+        with open (db_filename,'r+'):
+            conn = sqlite3.connect(db_filename)
+            cursor = conn.cursor()
 
-        picture = "/static/serverFiles/profile_pictures/" + username + ".jpg"
+        picture = ("/static/serverFiles/profile_pictures/%s.jpg" % (username))
 
         cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?",[picture,username])
 
@@ -312,7 +351,7 @@ def editPicture(picture):
         conn.commit()
         conn.close()
 
-        raise cherrypy.HTTPRedirect('/viewOwnProfile')
+        raise cherrypy.HTTPRedirect('/view_own_profile')
 
     except KeyError:
         raise cherrypy.HTTPRedirect('/')

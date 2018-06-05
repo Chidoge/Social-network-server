@@ -50,3 +50,45 @@ Rate Limited User : dche192	2018-06-05 03:16:11
 Rate Limited User : dche192	2018-06-05 03:16:12
 /sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 03:28:07
 /sendMessage to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-05 03:28:09
+/viewProfile for dfu987 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 14:28:23
+/sendMessage to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 15:51:36
+/sendMessage to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 16:02:19
+/viewProfile for jflo015 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 16:03:19
+/viewProfile for dfu987 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 16:37:09
+/sendMessage to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 16:52:58
+/sendMessage to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 16:53:00
+/sendMessage to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 16:55:25
+/viewProfile for pjoe652 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 17:39:54
+Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Value Error	2018-06-05 22:32:28
+Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Value Error	2018-06-05 22:35:23
+Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Value Error	2018-06-05 22:37:11
+Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Value Error	2018-06-05 22:37:36
+Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Value Error	2018-06-05 22:38:12
+Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Value Error	2018-06-05 22:39:53
+Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Value Error	2018-06-05 22:39:55
+Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Value Error	2018-06-05 22:39:56
+Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Value Error	2018-06-05 22:40:07
+/viewProfile for ktam069 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 22:45:26
+Failed to retrieve profile picture in /view_profile for dfu987 | Reason : Value Error	2018-06-05 22:46:58
+Failed to retrieve profile picture in /view_profile for dfu987 | Reason : Value Error	2018-06-05 22:49:16
+Failed to retrieve profile picture in /view_profile for dfu987 | Reason : Value Error	2018-06-05 22:50:32
+Failed to retrieve profile picture in /view_profile for dfu987 | Reason : Value Error : could not convert string to float: 	2018-06-05 22:52:00
+Failed to retrieve profile picture in /view_profile for dfu987 | Reason : Value Error : could not convert string to float: 	2018-06-05 22:52:45
+2018-06-05 22:54:18
+Failed to retrieve profile picture in /view_profile for dfu987 | Reason : Value Error : could not convert string to float: 	2018-06-05 22:54:18
+	2018-06-05 22:55:17
+Failed to retrieve profile picture in /view_profile for dfu987 | Reason : Value Error : could not convert string to float: 	2018-06-05 22:55:17
+Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Type Error : expected string or buffer	2018-06-05 23:01:01
+/viewProfile for ylee778 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:13:45
+/viewProfile for mcar397 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:13:50
+/viewProfile for gxu630 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:14:24
+/viewProfile for sdhu434 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:20:45
+/viewProfile for ilee471 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:22:58
+/viewProfile for dlee906 failed | Reason : URL Error at /ping, Exception : <urlopen error [Errno 10061] No connection could be made because the target machine actively refused it>	2018-06-05 23:24:55
+/viewProfile for ilee471 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:25:01
+/viewProfile for mcar397 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:25:07
+/viewProfile for ccho416 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:25:13
+/viewProfile for bcri429 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:25:19
+Failed to retrieve profile picture in /view_profile for jkin677 | Reason : Type Error : coercing to Unicode: need string or buffer, NoneType found	2018-06-05 23:25:23
+/viewProfile for dbal234 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:25:27
+/viewProfile for ttha702 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:26:18

@@ -1,13 +1,14 @@
-import datetime
+"""MyThread.py
+
+    COMPSYS302 - Software Design
+    Author: Lincoln Choy
+
+    This thread class is used for regularly reporting to the login server.
+    Currently does nothing else.
+"""
 import thread
 from threading import Thread,Event
 import urllib2
-import time
-import sys
-import atexit
-import cherrypy
-
-listen_port = 10010
 
 
 class MyThread(Thread):
@@ -20,17 +21,16 @@ class MyThread(Thread):
     def run(self):
 
         while not self._stop_event.wait(40):
-            hostIP = urllib2.urlopen('https://api.ipify.org').read()
-    	    r = urllib2.urlopen(thisURL).read()
-    	    print r
+    	    r = urllib2.urlopen(this_URL).read()
+
 
     def stop(self):
 
     	self._stop_event.set()
 
 
-    def setURL(self,url):
-    	global thisURL
-    	thisURL = url
+    def set_login_URL(self,url):
+    	global this_URL
+    	this_URL = url
 
 

@@ -1,3 +1,12 @@
+"""users.py
+
+    COMPSYS302 - Software Design
+    Author: Lincoln Choy
+
+    This file contains methods which relate to the users of this server, and the login server.
+"""
+
+
 import cherrypy
 import json
 import hashlib
@@ -9,8 +18,14 @@ import communication
 import time
 import datetime
 
-#Shows main page after login
-def showUserPage():
+
+
+
+"""This function is used to display the html of the main page to the user
+    Input : None
+    Output : page (string, html code for the page)
+    """
+def show_user_page():
 
     #Check session
     try:
@@ -18,16 +33,16 @@ def showUserPage():
         username = cherrypy.session['username']
 
         #Get base html for page
-        workingDir = os.path.dirname(__file__)
-        filename = workingDir + "/html/userpage.html"
-        f = open(filename,"r")
-        page = f.read()
-        f.close()
+        working_dir = os.path.dirname(__file__)
+        filename = working_dir + "/html/userpage.html"
+        with open (filename,'r') as file:
+            page = file.read()
+            file.close()
 
         #Check if user had chat session with anyone, if so, show their chat box
         destination = cherrypy.session.get('destination','')
         if (destination != ''):
-            page = communication.getChatPage(page,username,destination)
+            page = communication.get_chat_page(page,username,destination)
 
         page = page.replace('DESTINATION_HERE',destination)
 
@@ -37,11 +52,17 @@ def showUserPage():
     #If not logged in and trying to access userpage, bring them back to the default page
     except KeyError:
 
-        raise cherrypy.HTTPRedirect('/')  
+        raise cherrypy.HTTPRedirect('/')
 
 
 
-def saveOnlineUsers():
+
+""" This function stores (in a database) most of the information retrieved by calling the login server's /getList API
+    The information stored is useful for initiating communication with other nodes.
+    Input : None
+    Output : None
+    """
+def save_online_users():
 
     #Check session
     try:
@@ -55,11 +76,11 @@ def saveOnlineUsers():
         users = json.loads(response)
 
         #Prepare database for storing online users
-        workingDir = os.path.dirname(__file__)
-        dbFilename = workingDir + "/db/userinfo.db"
-        f = open(dbFilename,"r+")
-        conn = sqlite3.connect(dbFilename)
-        cursor = conn.cursor()
+        working_dir = os.path.dirname(__file__)
+        db_filename = working_dir + "/db/userinfo.db"
+        with open (db_filename,'r+'):
+            conn = sqlite3.connect(db_filename)
+            cursor = conn.cursor()
 
         for i in users:
  
@@ -86,14 +107,19 @@ def saveOnlineUsers():
 
 
 
-def getUserIP_PORT(destination):
+
+"""This helper function is used to get the IP and port of a user who is stored in the database.
+    Input : destination (string, username of the user we are trying to get information about)
+    Output : info (dictionary, contains ip and port of the destination)
+    """
+def get_user_ip_port(destination):
 
     #Open database
-    workingDir = os.path.dirname(__file__)
-    dbFilename = workingDir + "/db/userinfo.db"
-    f = open(dbFilename,"r+")
-    conn = sqlite3.connect(dbFilename)
-    cursor = conn.cursor()
+    working_dir = os.path.dirname(__file__)
+    db_filename = working_dir + "/db/userinfo.db"
+    with open (db_filename,'r+'):
+        conn = sqlite3.connect(db_filename)
+        cursor = conn.cursor()
 
     #Find ip and port - Should always exist, since this method is only called when this user is saved.
     cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = ?",[destination])
@@ -107,27 +133,39 @@ def getUserIP_PORT(destination):
     return info
 
 
-def logError(errorMessage):
 
-    workingDir = os.path.dirname(__file__)
-    filename = workingDir + '/errorlog.txt'
+
+""" Helper function used to log errors into a text file
+    Input : message (string, error to be logged)
+    Output : None
+    """
+def log_error(error_message):
+
+    working_dir = os.path.dirname(__file__)
+    filename = working_dir + '/errorlog.txt'
     stamp = time.time()
     value = datetime.datetime.fromtimestamp(stamp)
-    timestamp = value.strftime('%Y-%m-%d %H:%M:%S')
+    time_stamp = value.strftime('%Y-%m-%d %H:%M:%S')
 
     with open(filename, 'a') as file:
-        file.write(errorMessage + '\t' + timestamp + '\n')
+        file.write(error_message + '\t' + time_stamp + '\n')
+        file.close()
 
 
 
-def setNewChatUser(destination):
+
+""" Function used to set a new target destination for the chat page
+    Input : destination (string, new chat target)
+    Output : None
+    """
+def set_new_chat_user(destination):
 
     #Prepare database for deleting from message buffer
-    workingDir = os.path.dirname(__file__)
-    dbFilename = workingDir + "/db/messages.db"
-    f = open(dbFilename,"r+")
-    conn = sqlite3.connect(dbFilename)
-    cursor = conn.cursor()
+    working_dir = os.path.dirname(__file__)
+    db_filename = working_dir + "/db/messages.db"
+    with open (db_filename,'r+'):
+        conn = sqlite3.connect(db_filename)
+        cursor = conn.cursor()
 
     cursor.execute("DELETE FROM MessageBuffer WHERE Sender = ?",[str(destination)])
     conn.commit()
@@ -135,10 +173,19 @@ def setNewChatUser(destination):
 
     cherrypy.session['destination'] = str(destination)
 
-    raise cherrypy.HTTPRedirect('/showUserPage')
+    raise cherrypy.HTTPRedirect('/show_user_page')
 
 
-def refreshUserList():
+
+
+""" This function is called by a JavaScript function.
+    It refreshes the online user list to be displayed on the page
+    Input : None
+    Output : out (json encoded dictionary, contains the html to be displayed)
+    """
+def refresh_user_list():
+
+    save_online_users()
 
     username = cherrypy.session['username']
 
@@ -154,11 +201,10 @@ def refreshUserList():
         #No need to show current user their own profile
         if (destination != username):
             page += '<div class = onlineUser>'
-            page += '<p>' +  str(destination) + '</p>' 
-            page += '<form action ="/chatUser?destination=' + str(destination) +'"method="post">'
-            page += '<button type="submit">Chat</button></form>'
-            page += '<form action ="/viewProfile?destination=' +  str(destination) + '"method="post">'
-            page += '<button type="submit">View Profile</button></form>'
+            page += '<form action ="/chat_user?destination=' +str(destination) +'"method="post">'
+            page += '<button type="submit">'+'Chat with ' + str(destination) + '</button></form>'
+            page += '<form action ="/view_profile?destination=' + str(destination) +  '"method="post">'
+            page += '<button type="submit">' + 'View ' + str(destination) + '\'s '+ 'profile'+ '</button></form>'
             page += '</div>'
 
 

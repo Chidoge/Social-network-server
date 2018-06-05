@@ -1,5 +1,5 @@
 #!/usr/bin/python
-""" cherrypy_example.py
+""" mainapp.py
 
     COMPSYS302 - Software Design
     Author: Lincoln Choy
@@ -55,13 +55,14 @@ class MainApp(object):
         #Serve main page html
         workingDir = os.path.dirname(__file__)
         filename = workingDir + "./html/login.html"
-        f = open(filename,"r")
-        page = f.read()
-        f.close()
+        with open (filename,'r') as file:
+            page = file.read()
+            file.close()
+
         #Check user is logged in
         try:
             username = cherrypy.session['username']
-            raise cherrypy.HTTPRedirect('/showUserPage')
+            raise cherrypy.HTTPRedirect('/show_user_page')
 
         #There is no username
         except KeyError:
@@ -78,23 +79,23 @@ class MainApp(object):
 
     #LOGGING IN AND OUT
     @cherrypy.expose
-    def signin(self, username=None, password=None,location=None):
+    def sign_in(self, username=None, password=None,location=None):
 
-        login.signin(username,password,location)
+        login.sign_in(username,password,location)
 
 
     #Log out API
     @cherrypy.expose
-    def signout(self):
+    def sign_out(self):
 
-        login.signout()
+        login.sign_out()
 
 
     #Compares user typed hashed password with server hashed password.
     @cherrypy.expose
-    def authoriseUserLogin(self,username,password):
+    def authorise_user_login(self,username,password):
 
-        return login.authoriseUserLogin(username,password)
+        return login.authorise_user_login(username,password)
 
 
 #-----------------------------------------END------------------------------------------#
@@ -108,49 +109,49 @@ class MainApp(object):
 
     #Profile page
     @cherrypy.expose
-    def showUserPage(self):
+    def show_user_page(self):
 
-        users.saveOnlineUsers()
-        return users.showUserPage()
-
-
-    @cherrypy.expose
-    def refreshUserList(self):
-
-        return users.refreshUserList()
+        users.save_online_users()
+        return users.show_user_page()
 
 
     @cherrypy.expose
-    def chatUser(self,destination):
+    def refresh_user_list(self):
 
-        users.setNewChatUser(destination)
+        return users.refresh_user_list()
+
+
+    @cherrypy.expose
+    def chat_user(self,destination):
+
+        users.set_new_chat_user(destination)
      
 
     #Shows profile of user(userUPI)
     @cherrypy.expose
-    def viewProfile(self,destination):
+    def view_profile(self,destination):
 
-        return profiles.viewProfile(destination)
+        return profiles.view_profile(destination)
 
 
     @cherrypy.expose
-    def viewOwnProfile(self):
+    def view_own_profile(self):
 
-        return profiles.viewOwnProfile()
+        return profiles.view_own_profile()
 
 
     #Saves user changes to their profile
     @cherrypy.expose
-    def saveEdit(self,name,position,description,location):
+    def save_edit(self,name,position,description,location):
 
-        profiles.saveEdit(name,position,description,location)
+        profiles.save_edit(name,position,description,location)
 
 
     #Change user's profile picture
     @cherrypy.expose
-    def editPicture(self,picture):
+    def edit_picture(self,picture):
 
-        profiles.editPicture(picture)
+        profiles.edit_picture(picture)
 
     #Public API for other users to get this node's profile
     @cherrypy.expose
@@ -158,7 +159,7 @@ class MainApp(object):
     def getProfile(self):
 
         data = cherrypy.request.json
-        return profiles.getProfile(data)
+        return profiles.get_profile(data)
 
 #----------------------------------------------END---------------------------------------#
 
@@ -171,9 +172,9 @@ class MainApp(object):
 
 
     @cherrypy.expose
-    def refreshChat(self):
+    def refresh_chat(self):
 
-        return communication.refreshChat()
+        return communication.refresh_chat()
 
 
     @cherrypy.expose
@@ -199,25 +200,25 @@ class MainApp(object):
 
     #Calls other node's /receiveMessage API
     @cherrypy.expose
-    def sendMessage(self,message):
+    def send_message(self,message):
 
         #Makes sure user isn't just sending nothing
-        messageNoSpaces = message.replace(" ","")
-        if (len(messageNoSpaces) != 0):
-            return communication.sendMessage(message)
+        message_no_spaces = message.replace(" ","")
+        if (len(message_no_spaces) != 0):
+            return communication.send_message(message)
         else:
-            raise cherrypy.HTTPRedirect('/showUserPage')
+            raise cherrypy.HTTPRedirect('/show_user_page')
 
 
     #Calls other node's /receiveFile API
     @cherrypy.tools.json_in()
     @cherrypy.expose
-    def sendFile(self):
+    def send_file(self):
 
         data = cherrypy.request.json
-        fileData = data['fileData']
-        mimetype = data['mimetype']
-        communication.sendFile(fileData,mimetype)
+        file_data = data['file_data']
+        mime_type = data['mime_type']
+        communication.send_file(file_data,mime_type)
 
 
     #Public(Common) API for receiving message
@@ -226,7 +227,7 @@ class MainApp(object):
     def receiveMessage(self):
 
         data = cherrypy.request.json
-        return communication.receiveMessage(data)
+        return communication.receive_message(data)
 
 
     #Public(Common) API for receiving files
@@ -235,15 +236,13 @@ class MainApp(object):
     def receiveFile(self):
 
         data = cherrypy.request.json
-        return communication.receiveFile(data)
+        return communication.receive_file(data)
 
 
 #-------------------------------------------END--------------------------------------------#
 
 
-#--------------LOGIN------------#
 
-#------------END------------------#
 
 
 #-------------------------------------RUNS THE SERVER--------------------------------------#
@@ -252,9 +251,11 @@ class MainApp(object):
 def exit_handler():
 
     filename = textPath + '/currentUser.txt'
-    f = open(filename,"r")
-    info = f.read().split(";")
-    r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + info[0] + "&password=" + info[1] + "&enc=0")
+    with open (filename,'r') as file:
+        info = file.read()
+        info = info.split(";")
+        r = urllib2.urlopen("http://cs302.pythonanywhere.com/logoff?username=" + info[0] + "&password=" + info[1] + "&enc=0")
+        file.close()
 
 
 @cherrypy.expose
