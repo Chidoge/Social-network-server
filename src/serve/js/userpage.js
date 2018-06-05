@@ -184,7 +184,7 @@ setInterval(window.onload = function notify() {
                 var notification = (JSON.parse(xmlhttp.responseText));
                 if (notification.newMessage == 'True'){
                     var notiBar = document.getElementById('notiBar');
-                    notiBar.innerHTML = 'New message(s) from ' + notification.destination;
+                    notiBar.innerHTML = '<div class = "notiBar">New message(s) from ' + notification.destination + '</div>';
                 }
                 else {
                     var notiBar = document.getElementById('notiBar');

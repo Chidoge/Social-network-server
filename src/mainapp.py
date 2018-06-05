@@ -53,8 +53,8 @@ class MainApp(object):
     def index(self):
 
         #Serve main page html
-        workingDir = os.path.dirname(__file__)
-        filename = workingDir + "./html/login.html"
+        working_dir = os.path.dirname(__file__)
+        filename = working_dir + "./html/login.html"
         with open (filename,'r') as file:
             page = file.read()
             file.close()
@@ -79,7 +79,7 @@ class MainApp(object):
 
     #LOGGING IN AND OUT
     @cherrypy.expose
-    def sign_in(self, username=None, password=None,location=None):
+    def sign_in(self, username, password,location):
 
         login.sign_in(username,password,location)
 
@@ -91,11 +91,36 @@ class MainApp(object):
         login.sign_out()
 
 
-    #Compares user typed hashed password with server hashed password.
     @cherrypy.expose
-    def authorise_user_login(self,username,password):
+    def check_code(self,code):
 
-        return login.authorise_user_login(username,password)
+        login.check_code(code)
+
+    @cherrypy.expose
+    def two_fa_page(self):
+        
+        try:
+            username = cherrypy.session['username']
+            raise cherrypy.HTTPRedirect('/')
+
+        except KeyError:
+            
+            #2FA page html
+            working_dir = os.path.dirname(__file__)
+            filename = working_dir + "./html/2fa.html"
+            with open (filename,'r') as file:
+                page = file.read()
+                file.close()
+
+            return page
+
+
+    @cherrypy.expose
+    def check_code(self,code):
+
+        return login.check_code(code)
+
+
 
 
 #-----------------------------------------END------------------------------------------#

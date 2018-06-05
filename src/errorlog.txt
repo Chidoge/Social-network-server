@@ -92,3 +92,25 @@ Failed to retrieve profile picture in /view_profile for hshe440 | Reason : Type 
 Failed to retrieve profile picture in /view_profile for jkin677 | Reason : Type Error : coercing to Unicode: need string or buffer, NoneType found	2018-06-05 23:25:23
 /viewProfile for dbal234 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:25:27
 /viewProfile for ttha702 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:26:18
+/viewProfile for jche681 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-05 23:34:55
+/viewProfile for jven054 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 00:50:26
+/viewProfile for dcho415 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 01:01:55
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 01:20:04
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:04
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 01:20:04
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:05
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:05
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:05
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 01:20:05
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:16
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:16
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:16
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:23
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:23
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:23
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:23
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:23
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:24
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:24
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:24
+/send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:25
