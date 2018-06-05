@@ -90,14 +90,14 @@ def save_online_users():
             lastLogin = users[i]['lastLogin']
 
             #Search for existing user in database
-            cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = ?",[userUPI])
+            cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = '%s'" % (userUPI,))
             row = cursor.fetchall()
 
             #Insert new user information if new,update existing user information
             if (len(row) == 0):
-                cursor.execute("INSERT INTO UserList(UPI,IP,PORT,lastLogin) VALUES (?,?,?,?)",[userUPI,userIP,userPORT,lastLogin])
+                cursor.execute("INSERT INTO UserList(UPI,IP,PORT,lastLogin) VALUES ('%s','%s','%s','%s')" % (userUPI,userIP,userPORT,lastLogin,))
             else:
-                cursor.execute("UPDATE UserList SET IP = ?,PORT = ?, lastLogin = ? WHERE UPI = ?",[userIP,userPORT,lastLogin,userUPI])
+                cursor.execute("UPDATE UserList SET IP = '%s',PORT = '%s', lastLogin = '%s' WHERE UPI = '%s'" % (userIP,userPORT,lastLogin,userUPI,))
 
         conn.commit()
         conn.close()
@@ -122,7 +122,7 @@ def get_user_ip_port(destination):
         cursor = conn.cursor()
 
     #Find ip and port - Should always exist, since this method is only called when this user is saved.
-    cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = ?",[destination])
+    cursor.execute("SELECT IP,PORT FROM UserList WHERE UPI = '%s'" % (destination,))
     row = cursor.fetchall()
 
     ip = str(row[0][0])
@@ -167,7 +167,7 @@ def set_new_chat_user(destination):
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
 
-    cursor.execute("DELETE FROM MessageBuffer WHERE Sender = ?",[str(destination)])
+    cursor.execute("DELETE FROM MessageBuffer WHERE Sender = '%s'" % (str(destination),))
     conn.commit()
     conn.close()
 

@@ -114,3 +114,12 @@ Failed to retrieve profile picture in /view_profile for jkin677 | Reason : Type 
 /send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:24
 /send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:24
 /send_message to dche192 failed | Reason : Ping response was not 0, Response : 11	2018-06-06 01:20:25
+Failed to retrieve profile in /view_profile for hpat255 | Reason : URL Error, Exception : HTTP Error 500: Internal Server Error	2018-06-06 02:33:40
+/viewProfile for jven054 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:33:45
+/viewProfile for yqia375 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:33:59
+/viewProfile for dtri542 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:34:08
+/viewProfile for jpat331 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:35:04
+Failed to retrieve profile in /view_profile for hpat255 | Reason : URL Error, Exception : HTTP Error 500: Internal Server Error	2018-06-06 02:36:29
+/viewProfile for yqia375 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:36:33
+/viewProfile for ylee778 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:40:50
+/send_message to ylee778 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:41:15

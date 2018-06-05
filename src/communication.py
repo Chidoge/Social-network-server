@@ -56,8 +56,8 @@ def receive_message(data):
             cursor = conn.cursor()
 
         #Store the message into database
-        cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,'0'])
-        cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,'0'])
+        cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES ('%s','%s','%s','%s','%s')" % (sender,destination,message,stamp,'0',))
+        cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES ('%s','%s','%s','%s','%s')" % (sender,destination,message,stamp,'0',))
 
         #Save changes and return 0
         conn.commit()
@@ -106,7 +106,7 @@ def send_message(message):
                 users.log_error("/send_message to %s failed | Reason : Ping response was not 0, Response : %s" % (destination,ping_response))
                 return
 
-        except urllib2.URLError(exception):
+        except urllib2.URLError,exception:
             users.log_error("/send_message to %s failed | Reason : URL Error at /ping, Exception : %s" % (destination,exception))
             return
 
@@ -130,7 +130,7 @@ def send_message(message):
                 users.log_error("/send_message to %s failed | Reason : /receiveMessage response was not 0, Response : %s" % (destination,response))
                 return
 
-        except urllib2.URLError(exception):
+        except urllib2.URLError,exception:
             users.logError("/send_message to %s failed | Reason : URL Error at /receiveMessage, Exception : %s" % (destination,exception))
             return
 
@@ -162,8 +162,8 @@ def save_message(message,sender,destination,stamp,is_file):
         cursor = conn.cursor()
 
     #Insert message row
-    cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,is_file])
-    cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)",[sender,destination,message,stamp,is_file])
+    cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES ('%s','%s','%s','%s','%s')" % (sender,destination,message,stamp,is_file,))
+    cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES ('%s','%s','%s','%s','%s')" % (sender,destination,message,stamp,is_file,))
 
     #Save changes
     conn.commit()
@@ -244,7 +244,7 @@ def send_file(file_data,mime_type):
                 users.log_error("/send_file to %s failed | Reason : Ping response was not 0, Response : %s" % (destination,ping_response))
                 return
 
-        except urllib2.URLError(exception):
+        except urllib2.URLError,exception:
             users.log_error("/send_file to %s failed | Reason : URL Error at /ping, Exception : %s" % (destination,exception))
             return
 
@@ -272,7 +272,7 @@ def send_file(file_data,mime_type):
                 users.log_error("/send_file to %s failed | Reason : /receiveFile response was not 0, Response : %s" % (destination,response))
                 return
 
-        except urllib2.URLError(exception):
+        except urllib2.URLError,exception:
             users.log_error("/send_file to %s failed | Reason : URL Error at /receiveFile, Exception : %s" % (destination,exception))
             return
 
@@ -358,7 +358,7 @@ def check_rate_limit(sender):
     cursor = conn.cursor()
 
 
-    cursor.execute("SELECT lastLimit,requestsPastMinute FROM UserList WHERE UPI = ?",[sender])
+    cursor.execute("SELECT lastLimit,requestsPastMinute FROM UserList WHERE UPI = '%s'" % (sender,))
     row = cursor.fetchall()
 
     if (len(row)==0):
@@ -367,14 +367,14 @@ def check_rate_limit(sender):
         return '1'
     else:
         if (time.time()- float(str(row[0][0])) > 60):
-            cursor.execute("UPDATE UserList SET lastLimit = ?,requestsPastMinute = ? WHERE UPI = ?",[str(time.time()),'1',sender])
+            cursor.execute("UPDATE UserList SET lastLimit = '%s',requestsPastMinute = '%s' WHERE UPI = '%s'" % (str(time.time()),'1',sender,))
             conn.commit()
             conn.close()
             return '0'
         else:
             #Row 1 is the requests in the past minute
             if (int(str(row[0][1])) < 60):
-                cursor.execute("UPDATE UserList SET requestsPastMinute = ? WHERE UPI = ?",[str(int(str(row[0][1])) + 1),sender])
+                cursor.execute("UPDATE UserList SET requestsPastMinute = '%s' WHERE UPI = '%s'" % (str(int(str(row[0][1])) + 1),sender,))
                 conn.commit()
                 conn.close()
                 return '0'
@@ -396,9 +396,8 @@ def get_chat_page(page,sender,destination):
     #Add chat divisions to page
     working_dir = os.path.dirname(__file__)
     filename = working_dir + "/html/chatbox.html"
-    f = open(filename,"r")
     with open (filename,'r') as file:
-        page += f.read()
+        page += file.read()
         file.close()
 
     #Grab profile picture of destination to put into chat box
@@ -408,7 +407,7 @@ def get_chat_page(page,sender,destination):
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
 
-    cursor.execute("SELECT Picture FROM Profile WHERE UPI = ?",[destination])
+    cursor.execute("SELECT Picture FROM Profile WHERE UPI = '%s'" % (destination,))
     row = cursor.fetchone()
 
     #Use anon picture if they dont have a picture
@@ -430,7 +429,7 @@ def get_chat_page(page,sender,destination):
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
 
-    cursor.execute("SELECT Message,Sender,isFile FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
+    cursor.execute("SELECT Message,Sender,isFile FROM Messages WHERE (Sender = '%s' AND Destination = '%s') OR (Sender = '%s' AND Destination = '%s') ORDER BY Stamp" % (destination,sender,sender,destination,))
     rows = cursor.fetchall()
 
     #For each line of dialogue, add to the chat box
@@ -488,10 +487,10 @@ def add_embedded_viewer(file_source):
         page += '<source src="' + file_source + '" type="audio/mpeg">'
         page += '</audio>'
         page += '</div>'
-    #elif (file_source.endswith('pdf')):
-        #page = '<div class = "chat-message-image">'
-        #page += '<div style="float:left">'
-        #page += '<object data="' + file_source + '" type="application/pdf" width="500px" height="400px" top = "0" left = "0" </object></div></div>'
+    elif (file_source.endswith('pdf')):
+        #page = '<div class = "chat-message">'
+        page = '<div class = "chat-message-PDF">'
+        page += '<object data="' + file_source + '" type="application/pdf" width="350px" height="450px"></object></div>'
     else:
         page = '<div class = "chat-message">File format is not supported</div>'
     return page
@@ -517,7 +516,7 @@ def acknowledge(data):
         f = open(db_filename,"r")
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
-        cursor.execute("SELECT Message from Messages WHERE UPI = ? AND Stamp = ?",[sender,stamp])
+        cursor.execute("SELECT Message from Messages WHERE UPI = '%s' AND Stamp = '%s'" % (sender,stamp,))
         row = cursor.fetchone()
 
         if (hashing_standard == '0'):
@@ -576,7 +575,7 @@ def refresh_chat():
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()  
 
-    cursor.execute("SELECT Picture FROM Profile WHERE UPI = ?",[destination])
+    cursor.execute("SELECT Picture FROM Profile WHERE UPI = '%s'" % (destination,))
     row = cursor.fetchone()
 
     #Use anon picture if they dont have a picture
@@ -599,7 +598,7 @@ def refresh_chat():
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
 
-    cursor.execute("SELECT Message,Sender,isFile,Stamp FROM MessageBuffer WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp",[destination,sender,sender,destination])
+    cursor.execute("SELECT Message,Sender,isFile,Stamp FROM MessageBuffer WHERE (Sender = '%s' AND Destination = '%s') OR (Sender = '%s' AND Destination = '%s') ORDER BY Stamp" % (destination,sender,sender,destination,))
     rows = cursor.fetchall()
 
     #For each line of dialogue, add to the chat box
@@ -627,7 +626,7 @@ def refresh_chat():
             sender = 'self'
 
 
-    cursor.execute("DELETE FROM MessageBuffer WHERE SENDER = ? OR DESTINATION = ?",[destination,destination])
+    cursor.execute("DELETE FROM MessageBuffer WHERE SENDER = '%s' OR DESTINATION = '%s'" % (destination,destination,))
     conn.commit()
     conn.close()
 
@@ -700,7 +699,7 @@ def notify():
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM MessageBuffer WHERE Destination = ?",[sender])
+    cursor.execute("SELECT * FROM MessageBuffer WHERE Destination = '%s'" % (sender,))
     rows = cursor.fetchall()
 
     #Check message buffer for unread messages and get their senders

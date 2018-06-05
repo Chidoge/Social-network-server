@@ -105,6 +105,7 @@
 }
 
 
+
 .chat-message-image img {
     display: block;
     max-width : 300px;
@@ -144,7 +145,7 @@
 }
 
 .friend .chat-message-image {
-    background: #d3d3d3;
+    background: none;
 }
 
 .self .chat-message {
@@ -157,13 +158,28 @@
 
 }
 
+.self .chat-message-PDF {
+
+    margin-top : 0;
+    margin-left : auto;
+    margin-right : 1%;
+    margin-bottom: auto;
+    order: -1;
+    background: none;
+}
+
+.friend .chat-message-PDF {
+    background : none;
+}
+
+
 .self .chat-message-image {
     margin-top : 0;
     margin-left : auto;
     margin-right : 1%;
     margin-bottom: auto;
     order: -1;
-    background: #3090C7;
+    background: none;
 
 }
 
