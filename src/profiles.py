@@ -87,6 +87,13 @@ def view_profile(destination):
                 location = loaded.get('location','N/A')
                 last_updated = loaded.get('lastUpdated','0')
                 picture = str(loaded.get('picture','None'))
+		
+		#Remove html and javascript injections
+		name = name.replace("<","")
+		position = position.replace("<","")
+		description = description.replace("<","")
+		location = location.replace("<","")
+		picture = picture.replace("<","")
 
 
                 #Open database to store the user profile information
