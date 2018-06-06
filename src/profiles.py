@@ -26,6 +26,7 @@ port = 10010
 host_IP = socket.gethostbyname(socket.gethostname())
 
 
+
 """ This function returns a string of html which is the page that displays information
     for a requested profile.
     Input : destination (string, the name of the person's profile to be displayed)
@@ -205,14 +206,12 @@ def get_profile(data):
         cursor.execute("SELECT Name,Position,Description,Location,Picture,lastUpdated FROM Profile WHERE UPI = ?" , [profile_username])
         row = cursor.fetchone()
 
-        #Construct URL for image
-        url = ("http://%s:%s%s" % (host_IP,port,row[4]))
-
         conn.close()
-
         #Check if profile exists in the database
-        if (len(row) != 0):
+        if (row is not None):
 
+            #Construct URL for image
+            url = ("http://%s:%s%s" % (host_IP,port,row[4]))
             #Extract profile information in the rows and store it into a dictonary object to json encode later
             output_dict = {'fullname' :row[0],'position': row[1],'description': row[2],'location': row[3],'picture': url,'lastUpdated':row[5]}
 
@@ -221,7 +220,15 @@ def get_profile(data):
             return out
 
         else:
+
             users.log_error("Failed profile retrieval attempt for %s by %s | Reason : Profile does not exist" % (profile_username,sender))
+            #Extract profile information in the rows and store it into a dictonary object to json encode later
+            output_dict = {'fullname' :'N/A','position': 'N/A','description': 'N/A','location': 'N/A','picture': 'N/A','lastUpdated':'0'}
+
+            #Json encode the output dictionary then return it
+            out = json.dumps(output_dict)
+            return out
+
 
     #Return error code 1 : Missing compulsory field
     except KeyError:
@@ -244,19 +251,29 @@ def view_own_profile():
         #Read database
         working_dir = os.path.dirname(__file__)
         db_filename = working_dir + "/db/userinfo.db"
-        with open (db_filename,'r'):
+        with open (db_filename,'r+'):
             conn = sqlite3.connect(db_filename)
             cursor = conn.cursor()
 
         cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile where UPI = ?" , [username])
 
         rows = cursor.fetchall()
+        
+        if (len(rows) == 0):
+            name = 'Not set yet'
+            position = 'Not set yet'
+            description = 'Not set yet'
+            location = 'Not set yet'
+            picture = working_dir + '/serve/css/anon.png'
+            cursor.execute("INSERT INTO Profile(UPI,Name,Position,Description,Location,Picture,lastUpdated) VALUES (?,?,?,?,?,?,?)",[username,name,position,description,location,picture,str(time.time())])
+            conn.commit()
             
-        name = str(rows[0][0])
-        position = str(rows[0][1])
-        description = str(rows[0][2])
-        location = str(rows[0][3])
-        picture = str(rows[0][4])
+        else:
+            name = str(rows[0][0])
+            position = str(rows[0][1])
+            description = str(rows[0][2])
+            location = str(rows[0][3])
+            picture = str(rows[0][4])
 
         page = read_HTML('/html/ownProfile.html')
         page = page.replace('NAME_HERE',name)

@@ -202,3 +202,61 @@ failed to send 	2018-06-06 17:09:46
 /send_message to gxu630 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 17:09:52
 failed to send 	2018-06-06 17:09:52
 failed to send 	2018-06-06 17:09:52
+/viewProfile for rpor545 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 19:01:26
+/send_message to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 19:20:16
+failed to send 	2018-06-06 19:20:16
+failed to send 	2018-06-06 19:20:16
+/send_message to hyan506 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 19:20:40
+/send_message to hyan506 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 19:20:42
+/send_message to hyan506 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+failed to send 	2018-06-06 19:20:44
+/send_message to hyan506 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 19:20:53
+/send_message to hyan506 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 19:20:55
+/send_message to hyan506 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:57
+failed to send 	2018-06-06 19:20:58
+failed to send 	2018-06-06 19:20:58
+failed to send 	2018-06-06 19:20:58
+failed to send 	2018-06-06 19:20:58
+failed to send 	2018-06-06 19:20:58
+failed to send 	2018-06-06 19:20:58
+/viewProfile for ktam069 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 20:24:40
+/send_file to rpor545 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 21:40:16
+/send_message to rpor545 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 21:40:34
+/send_file to rpor545 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 21:44:10
+/send_message to rpor545 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 21:44:34
+Rate Limited User : adan849	2018-06-06 22:29:29
+Rate Limited User : pjha433	2018-06-06 23:05:24
+Failed profile retrieval attempt for lcho484 by dfu987 | Reason : Profile does not exist	2018-06-06 23:35:33
+Failed profile retrieval attempt for lcho484 by hshe440 | Reason : Profile does not exist	2018-06-06 23:36:00

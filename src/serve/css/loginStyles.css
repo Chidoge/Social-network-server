@@ -57,3 +57,9 @@ h1 {
     color:#3090C7;
     font-size: 25px;
 }
+
+.incorrect {
+    text-align: center;
+    color : red;
+    font-size : 20px;
+}

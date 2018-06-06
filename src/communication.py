@@ -103,12 +103,12 @@ def send_message(message):
 
             #Show error if ping response is invalid
             if (len(ping_response) == 0 or ping_response[0] != '0'):
-		save_error_message(sender,destination,str(time.time()))
+                save_error_message(sender,destination,str(time.time()))
                 users.log_error("/send_message to %s failed | Reason : Ping response was not 0, Response : %s" % (destination,ping_response))
                 return
 
         except urllib2.URLError,exception:
-	    save_error_message(sender,destination,str(time.time()))
+            save_error_message(sender,destination,str(time.time()))
             users.log_error("/send_message to %s failed | Reason : URL Error at /ping, Exception : %s" % (destination,exception))
             return
 
@@ -123,18 +123,18 @@ def send_message(message):
         try:
             #Put json encoded object into http request
             req = urllib2.Request(url,data,{'Content-Type':'application/json'})
-            response = urllib2.urlopen(req).read()
+            response = urllib2.urlopen(req,timeout=3).read()
 
             if (len(response) != 0 and response[0] == '0'):
                 save_message(message,sender,destination,stamp,'0')
                 return
             else:
-		save_error_message(sender,destination,str(time.time()))
+                save_error_message(sender,destination,str(time.time()))
                 users.log_error("/send_message to %s failed | Reason : /receiveMessage response was not 0, Response : %s" % (destination,response))
                 return
 
         except urllib2.URLError,exception:
-	    save_error_message(sender,destination,str(time.time()))
+            save_error_message(sender,destination,str(time.time()))
             users.logError("/send_message to %s failed | Reason : URL Error at /receiveMessage, Exception : %s" % (destination,exception))
             return
 
@@ -216,9 +216,9 @@ def send_file(file_data,mime_type):
         stamp = str(int(time.time()))
 
         #Guess an extension for the file type
-	index = mime_type.rfind('/')
-	extension = mime_type[index + 1:]
-	print 'extension is ' + extension
+    	index = mime_type.rfind('/')
+    	extension = mime_type[index + 1:]
+    	print 'extension is ' + extension
 
         #Prepare file path to store on server
         working_dir = os.path.dirname(__file__)
@@ -248,10 +248,12 @@ def send_file(file_data,mime_type):
             #Show error just in case destination didn't implement ping properly
             if (len(ping_response) == 0 or ping_response[0] != '0'):
                 users.log_error("/send_file to %s failed | Reason : Ping response was not 0, Response : %s" % (destination,ping_response))
+                save_error_message(sender,destination,str(time.time()))
                 return
 
         except urllib2.URLError,exception:
             users.log_error("/send_file to %s failed | Reason : URL Error at /ping, Exception : %s" % (destination,exception))
+            save_error_message(sender,destination,str(time.time()))
             return
 
 
@@ -276,10 +278,12 @@ def send_file(file_data,mime_type):
                 return
             else:
                 users.log_error("/send_file to %s failed | Reason : /receiveFile response was not 0, Response : %s" % (destination,response))
+                save_error_message(sender,destination,str(time.time()))
                 return
 
         except urllib2.URLError,exception:
             users.log_error("/send_file to %s failed | Reason : URL Error at /receiveFile, Exception : %s" % (destination,exception))
+            save_error_message(sender,destination,str(time.time()))
             return
 
     except KeyError:
@@ -354,7 +358,12 @@ def receive_file(data):
         return '1 Missing Compulsory Field'
 
 
-
+"""This helper function saves a message in the message buffer so that JavaScript can notify the user that their message or file has not been sent successfully.
+     Inputs: sender (string)
+    destination (string)
+    stamp (string)
+      Output: None
+    """
 def save_error_message(sender,destination,stamp):
 	
     #Prepare database for message storing
@@ -526,67 +535,8 @@ def add_embedded_viewer(file_source):
         page += '<object data="' + file_source + '" type="application/pdf" width="350px" height="450px"></object></div>'
     else:
         page = '<div class = "chat-message">File format is not supported</div>'
+
     return page
-
-
-
-"""API for acknowledge, used to implement read receipts
-    NOT TESTED FOR WORKING
-    """
-def acknowledge(data):
-
-    try:
-        #Read compulsory fields
-        sender = data['sender']
-        stamp = data['stamp']
-        hashing_standard = str(data['hashing'])
-        data_hash = data['hash']
-
-
-        #Grab profile picture of destination to put into chat box
-        working_dir = os.path.dirname(__file__)
-        db_filename = working_dir + "/db/messages.db"
-        f = open(db_filename,"r")
-        conn = sqlite3.connect(db_filename)
-        cursor = conn.cursor()
-        cursor.execute("SELECT Message from Messages WHERE UPI = ? AND Stamp = ?" , [sender,stamp])
-        row = cursor.fetchone()
-
-        if (hashing_standard == '0'):
-            if (str(row) == data_hash):
-                return '0'
-            #Hash does not match
-            else:
-                return '7'
-        elif (hashing_standard == '1'):
-            hashed_message = hashlib.sha256(str(row)).hexdigest()
-            if (hashed_message == data_hash):
-                return '0'
-            #Hash does not match
-            else:
-                return '7'
-        elif (hashing_standard == '2'):
-            hashed_message = hashlib.sha256(str(row) + sender).hexdigest()
-            if (hashed_message == data_hash):
-                return '0'
-            #Hash does not match
-            else:
-                return '7'
-        elif (hashing_standard == '3'):
-            hashed_message = hashlib.sha512(str(row) + sender).hexdigest()
-            if (hashed_message == data_hash):
-                return '0'
-            #Hash does not match
-            else:
-                return '7'
-
-        #Hashing standard not supported
-        else:
-            return '10'
-
-    #Missing compulsory field
-    except KeyError:
-        return '1'
 
 
 
@@ -647,10 +597,8 @@ def refresh_chat():
                 page += '<div class = "chat-message">' + str(row[0]) + '</div>'
             page += '</div>;'
             sender = 'friend'
-            #acknowledge_message(str(row[0]),destination,str(row[2]),str(row[3]))
 
         elif (str(row[2]) == '-1'):
-	    users.log_error('failed to send ')
 	    page += 'b;'
 	    sender = 'self'
 	else:
@@ -666,51 +614,7 @@ def refresh_chat():
     output_dict = {'newChat' : page, 'sender' : sender}
     out = json.dumps(output_dict)
 
-    return out   
-
-
-
-
-
-"""This function is used to acknowledge a message received, so other nodes can display read receipts.
-    NOT TESTED FOR WORKING
-    """
-def acknowledge_message(message,sender,stamp,is_file):
-
-
-    #If the message is a file, need to open actual file before hashing
-    if (is_file == '1'):
-
-        #Open file
-        working_dir = os.path.dirname(__file__)
-        filename = working_dir + message
-        with open(filename,'r') as file:
-            file_read = file.read()
-
-        #Hash the file
-        hash_data = hashlib.sha512(file_read + sender)
-
-    else:
-
-        #Hash the message
-        hash_data = hashlib.sha512(message + sender)
-
-
-    #Prepare to json encode the data
-    output_dict = {'sender' : sender, 'hashing' : '3', 'hash' : hash_data, 'stamp' : stamp }
-    data = json.dumps(output_dict)
-
-    #Get ip and port to construct URL
-    user_info  = users.get_user_ip_port(destination)
-    ip = user_info['ip']
-    port = user_info['port']
-
-    #Call sender's acknowledge
-    url = "http://%s:%s/acknowledge" % (ip,port)
-    req = urllib2.Request(url,data,{'Content-Type':'application/json'})
-
-    #For now, disregard the error code returned
-    response = urllib2.urlopen(req).read()
+    return out
 
 
 
@@ -759,6 +663,12 @@ def notify():
 
 
 
+
+"""This function empties the message buffer and is only called once JavaScript has confirmed that the messages
+    have been displayed in the chat box
+    Input: destination (string)
+    Output: None
+    """
 def empty_buffer(destination):
 
     #Get new messages from destination or sender

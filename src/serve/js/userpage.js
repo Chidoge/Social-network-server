@@ -153,7 +153,7 @@ setInterval(window.onload = function refreshChat(){
                 var page = (JSON.parse(xmlhttp.responseText));
                 var oldChat = document.getElementById("chatlogs");
                 var messageSent = false;
-		var messageFailed = false;
+                var messageFailed = false;
                 messages = page.newChat.split(";");
                 for (var i =0;i<messages.length -1 ;i++){
 
@@ -166,10 +166,9 @@ setInterval(window.onload = function refreshChat(){
                         messageSent = true;
                                 
                     }
-		    else if (messages[i][0] == 'b'){
-			console.log('failed');
-			messageFailed = true;
-		    }
+        		    else if (messages[i][0] == 'b'){
+        			messageFailed = true;
+        		    }
                     else {
                         att.value = "chat friend";
                     }
@@ -184,12 +183,11 @@ setInterval(window.onload = function refreshChat(){
                 if (messageSent == true){
                     showMessageReceipt();
                 }
-		else if (messageFailed == true) {
-		    console.log('failing');
-		    showMessageFailed();
-		}
-		xmlhttp.open("POST","/empty_buffer",true);
-		xmlhttp.send();
+                else if (messageFailed == true) {
+        		    showMessageFailed();
+                }
+        		xmlhttp.open("POST","/empty_buffer",true);
+        		xmlhttp.send();
             }
             
             catch (parseError){

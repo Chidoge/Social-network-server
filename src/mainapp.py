@@ -29,6 +29,7 @@ import profiles
 import communication
 import users
 import login
+import set_up_db
 
 
 class MainApp(object):
@@ -94,7 +95,7 @@ class MainApp(object):
     @cherrypy.expose
     def check_code(self,code):
 
-        login.check_code(code)
+        return login.check_code(code)
 
     @cherrypy.expose
     def two_fa_page(self):
@@ -113,13 +114,6 @@ class MainApp(object):
                 file.close()
 
             return page
-
-
-    @cherrypy.expose
-    def check_code(self,code):
-
-        return login.check_code(code)
-
 
 
 
@@ -209,10 +203,10 @@ class MainApp(object):
 
     @cherrypy.expose
     def empty_buffer(self):
-	
+    
 
-	destination = cherrypy.session['destination']
-	communication.empty_buffer(destination)
+        destination = cherrypy.session['destination']
+        communication.empty_buffer(destination)
 
 
 #-----------------------------------------END----------------------------------------------#
@@ -315,6 +309,9 @@ def runMainApp():
                 'tools.staticdir.dir' : os.getcwd() +"/serve"
             }
         }
+
+    print '------------INITIALISING DATABASES------------'
+    set_up_db.set_up_all_db()
     
     atexit.register(exit_handler)
     # Create an instance of MainApp and tell Cherrypy to send all requests under / to it. (ie all of them)

@@ -130,7 +130,7 @@ def authorise_user_login(username,password,location):
 
 """This function checks the 2fa code provided by the user
     Input : code (string)
-    Output : None
+    Output : out (json encoded dictionary, for Javascript to check the response)
     """
 def check_code(code):
 
@@ -149,13 +149,24 @@ def check_code(code):
             save_user(username,hashed_pw)
             #Start thread for reporting to login server (every 40 seconds)
             report_to_server(url)
+
             raise cherrypy.HTTPRedirect('/show_user_page')
+
         else:
-            raise cherrypy.HTTPRedirect('/two_fa_page')
+
+            working_dir = os.path.dirname(__file__)
+            filename = working_dir + "/html/2fa.html"
+            with open (filename,'r') as file:
+                page = file.read()
+                page += '<div class = "incorrect">Sorry the code you entered was incorrect. Please try again</div>'
+                file.close()
+
+            return page
 
     except KeyError:
 
         return 'Session expired'
+
 
 
 
