@@ -28,9 +28,9 @@ from email.mime.multipart import MIMEMultipart
 listen_port = 10010
 
 #Get user's ip address
-hostIP = urllib2.urlopen('https://api.ipify.org').read()
+#hostIP = urllib2.urlopen('https://api.ipify.org').read()
 """For internal ip address"""
-#hostIP =socket.gethostbyname(socket.gethostname())
+hostIP =socket.gethostbyname(socket.gethostname())
 
 
 

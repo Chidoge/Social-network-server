@@ -4,10 +4,13 @@ function init() {
 
     var element = document.getElementById("chatlogs");
     if (element != null) {
+        console.log('Chat scrolled')
         element.scrollTop = element.scrollHeight;
     }
 
 }
+
+
 
 /* Gets the user list on page start up */
 function getList() {
@@ -15,7 +18,7 @@ function getList() {
     if (window.XMLHttpRequest) {
         xmlhttp = new XMLHttpRequest();
     }
-
+    console.log('Get list called')
     xmlhttp.onreadystatechange=function() {
 
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
@@ -78,11 +81,21 @@ function showMessageReceipt() {
     },1500);
 }
 
+function showMessageFailed(){
+
+    var snackBar=  document.getElementById('messageFailed');
+    snackBar.className = "show";
+
+    setTimeout(function() {
+        snackBar.className = snackBar.className.replace("show","");
+    },1500);
+    
+}
+
 
 function sendFile(){
 
     var file = document.querySelector('#fileForm').files[0];
-    console.log(file.size)
     if (file.size/1000000 > 5) {
         var note = document.getElementById("note")
         note.innerHTML = 'Max file size is 5MB'
@@ -112,6 +125,7 @@ function sendToServer(file) {
 
         fileData = fileData.substring(index + 1);
         mimetype = mimetype.substring(indexColon+1,indexSemi);
+
         var data = JSON.stringify({'file_data' : fileData , 'mime_type' : mimetype});
         
         xmlhttp.open("POST","/send_file",true);
@@ -121,6 +135,7 @@ function sendToServer(file) {
    };
 
 }
+
 
 /* Continues to refresh chat box */
 setInterval(window.onload = function refreshChat(){
@@ -138,6 +153,7 @@ setInterval(window.onload = function refreshChat(){
                 var page = (JSON.parse(xmlhttp.responseText));
                 var oldChat = document.getElementById("chatlogs");
                 var messageSent = false;
+		var messageFailed = false;
                 messages = page.newChat.split(";");
                 for (var i =0;i<messages.length -1 ;i++){
 
@@ -150,6 +166,10 @@ setInterval(window.onload = function refreshChat(){
                         messageSent = true;
                                 
                     }
+		    else if (messages[i][0] == 'b'){
+			console.log('failed');
+			messageFailed = true;
+		    }
                     else {
                         att.value = "chat friend";
                     }
@@ -164,6 +184,12 @@ setInterval(window.onload = function refreshChat(){
                 if (messageSent == true){
                     showMessageReceipt();
                 }
+		else if (messageFailed == true) {
+		    console.log('failing');
+		    showMessageFailed();
+		}
+		xmlhttp.open("POST","/empty_buffer",true);
+		xmlhttp.send();
             }
             
             catch (parseError){
@@ -176,7 +202,7 @@ setInterval(window.onload = function refreshChat(){
     xmlhttp.open("GET","/refresh_chat", true);
     xmlhttp.send();
 
-},2000)
+},1000)
 
 
 setInterval(window.onload = function notify() {

@@ -124,3 +124,81 @@ Failed to retrieve profile in /view_profile for hpat255 | Reason : URL Error, Ex
 /viewProfile for ylee778 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:40:50
 /send_message to ylee778 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 02:41:15
 /send_message to qhen143 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 03:10:55
+/viewProfile for pqua613 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 13:36:40
+/viewProfile for yqia375 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 13:36:46
+/viewProfile for mcar397 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 13:36:52
+/viewProfile for gxu630 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 13:36:56
+/viewProfile for jflo015 failed | Reason : URL Error at /ping, Exception : <urlopen error [Errno 111] Connection refused>	2018-06-06 13:38:12
+Failed to retrieve profile picture in /view_profile for jkin677 | Reason : Type Error : coercing to Unicode: need string or buffer, NoneType found	2018-06-06 13:38:18
+/viewProfile for jche681 failed | Reason : URL Error at /ping, Exception : <urlopen error [Errno 111] Connection refused>	2018-06-06 14:02:24
+/viewProfile for pcas121 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:02:37
+/viewProfile for vli121 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:03:14
+/viewProfile for jche681 failed | Reason : URL Error at /ping, Exception : <urlopen error [Errno 111] Connection refused>	2018-06-06 14:03:16
+/viewProfile for dcho415 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:03:28
+/viewProfile for adwi888 failed | Reason : URL Error at /ping, Exception : <urlopen error [Errno 111] Connection refused>	2018-06-06 14:03:31
+/viewProfile for yqia375 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:03:35
+/viewProfile for pqua613 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:03:38
+/viewProfile for jven054 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:05:29
+/viewProfile for mcar397 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:08:11
+/send_message to dfu987 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:17:15
+/viewProfile for pjha433 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:24:22
+/viewProfile for ylee778 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:24:27
+/viewProfile for kli283 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:24:31
+/send_message to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:29:15
+/send_message to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:29:31
+/send_message to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:29:48
+/viewProfile for gxu630 failed | Reason : URL Error at /ping, Exception : <urlopen error [Errno 111] Connection refused>	2018-06-06 14:31:03
+/viewProfile for dfu987 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:31:33
+/send_message to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:32:05
+/send_message to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:32:15
+/send_message to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 14:32:26
+/send_file to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 15:54:18
+/send_file to hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 15:54:46
+/viewProfile for pjha433 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 16:01:58
+/viewProfile for hshe440 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 16:02:24
+/viewProfile for jven054 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 16:07:18
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:01
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:01
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:01
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:01
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:01
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:02
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:02
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:02
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:02
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:04
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:04
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:05
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:05
+/send_message to dche192 failed | Reason : /receiveMessage response was not 0, Response : 11	2018-06-06 16:14:05
+/viewProfile for acha932 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 16:14:49
+/send_message to yqia375 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 16:57:11
+/send_message to adwi888 failed | Reason : URL Error at /ping, Exception : <urlopen error [Errno 111] Connection refused>	2018-06-06 16:58:34
+/send_message to adwi888 failed | Reason : URL Error at /ping, Exception : <urlopen error [Errno 111] Connection refused>	2018-06-06 16:58:44
+/send_message to dfu987 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 17:00:54
+/send_message to gxu630 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 17:03:49
+failed to send 	2018-06-06 17:03:49
+failed to send 	2018-06-06 17:03:49
+/send_message to ttha702 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 17:05:27
+failed to send 	2018-06-06 17:05:27
+failed to send 	2018-06-06 17:05:27
+/send_message to ttha702 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 17:05:32
+failed to send 	2018-06-06 17:05:32
+failed to send 	2018-06-06 17:05:32
+/send_message to ttha702 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 17:05:42
+failed to send 	2018-06-06 17:05:42
+failed to send 	2018-06-06 17:05:42
+/send_message to dtri542 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 17:06:04
+failed to send 	2018-06-06 17:06:04
+failed to send 	2018-06-06 17:06:04
+failed to send 	2018-06-06 17:06:04
+/send_message to dtri542 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 17:07:37
+failed to send 	2018-06-06 17:07:37
+failed to send 	2018-06-06 17:07:37
+failed to send 	2018-06-06 17:07:37
+/send_message to gxu630 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 17:09:46
+failed to send 	2018-06-06 17:09:46
+failed to send 	2018-06-06 17:09:46
+/send_message to gxu630 failed | Reason : URL Error at /ping, Exception : <urlopen error timed out>	2018-06-06 17:09:52
+failed to send 	2018-06-06 17:09:52
+failed to send 	2018-06-06 17:09:52

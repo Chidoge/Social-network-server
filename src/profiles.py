@@ -16,8 +16,14 @@ import urllib2
 import sqlite3
 import users
 import time
+import socket
 
 port = 10010
+
+#Get user's ip address
+#host_IP = urllib2.urlopen('https://api.ipify.org').read()
+"""For internal ip address"""
+host_IP = socket.gethostbyname(socket.gethostname())
 
 
 """ This function returns a string of html which is the page that displays information
@@ -81,8 +87,6 @@ def view_profile(destination):
                 last_updated = loaded.get('lastUpdated','0')
                 picture = str(loaded.get('picture','None'))
 
-                same = loaded.get('hre,','0')
-                print same
 
                 #Open database to store the user profile information
                 working_dir = os.path.dirname(__file__)
@@ -92,7 +96,7 @@ def view_profile(destination):
                     conn = sqlite3.connect(db_filename)
                     cursor = conn.cursor()
 
-                cursor.execute("SELECT lastUpdated FROM Profile WHERE UPI = '%s'" % (profile_username,))
+                cursor.execute("SELECT lastUpdated FROM Profile WHERE UPI = ?" , [profile_username])
                 row = cursor.fetchall()
 
                 #Check if picture is relative or absolute path, and perform 
@@ -108,11 +112,11 @@ def view_profile(destination):
 
                 #Insert new user information if new, otherwise update existing profile
                 if (len(row) == 0):
-                    cursor.execute("INSERT INTO Profile(UPI,Name,Position,Description,Location,Picture,lastUpdated) VALUES ('%s','%s','%s','%s','%s','%s','%s')" % (profile_username,name,position,description,location,picture,last_updated,))
+                    cursor.execute("INSERT INTO Profile(UPI,Name,Position,Description,Location,Picture,lastUpdated) VALUES (?,?,?,?,?,?,?)",[profile_username,name,position,description,location,picture,last_updated])
                 else:
                     #If retrieved profile is more updated than the one stored in database, update the profile
                     if (float(str(row[0][0])) < float(last_updated)):
-                        cursor.execute("UPDATE Profile SET UPI = '%s',Name = '%s',Position = '%s',Description = '%s',Location = '%s',Picture = '%s', lastUpdated = '%s' WHERE UPI = '%s'" % (profile_username,name,position,description,location,picture,last_updated,profile_username,))
+                        cursor.execute("UPDATE Profile SET UPI = ?,Name = ?,Position = ?,Description = ?,Location = ?,Picture = ?, lastUpdated = ? WHERE UPI = ?" , [profile_username,name,position,description,location,picture,last_updated,profile_username])
 
 
                 if ('http' in picture):
@@ -120,10 +124,10 @@ def view_profile(destination):
                     try:
                         urllib.urlretrieve(picture, working_dir + "/serve/serverFiles/profile_pictures/"+profile_username+".jpg")
                         pic = ("/static/serverFiles/profile_pictures/%s.jpg" % (profile_username))
-                        cursor.execute("UPDATE Profile SET Picture = '%s' WHERE UPI = '%s'" % (pic,profile_username,))
+                        cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?" , [pic,profile_username])
                     except urllib2.URLError,exception:
                         pic = 'None'
-                        cursor.execute("UPDATE Profile SET Picture = '%s' WHERE UPI = '%s'" % (pic,profile_username,))
+                        cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?" , [pic,profile_username])
                         users.log_error("Failed to retrieve profile picture in /view_profile for %s | Reason : URL Error during retrieval, URL Error : %s" % (profile_username,exception))
 
                 #Save database changes
@@ -190,11 +194,6 @@ def get_profile(data):
         profile_username = data['profile_username']
         sender = data['sender']
 
-        #Get user's ip address
-        host_IP = urllib2.urlopen('https://api.ipify.org').read()
-        """For internal ip address"""
-        #hostIP =socket.gethostbyname(socket.gethostname())
-
         #Open database for extracting profile
         working_dir = os.path.dirname(__file__) 
         db_filename = working_dir + "/db/userinfo.db"
@@ -203,7 +202,7 @@ def get_profile(data):
             cursor = conn.cursor()
 
         #Read database and see if requested profile exists
-        cursor.execute("SELECT Name,Position,Description,Location,Picture,lastUpdated FROM Profile WHERE UPI = '%s'" % (profile_username,))
+        cursor.execute("SELECT Name,Position,Description,Location,Picture,lastUpdated FROM Profile WHERE UPI = ?" , [profile_username])
         row = cursor.fetchone()
 
         #Construct URL for image
@@ -249,7 +248,7 @@ def view_own_profile():
             conn = sqlite3.connect(db_filename)
             cursor = conn.cursor()
 
-        cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile where UPI = '%s'" % (username,))
+        cursor.execute("SELECT Name, Position, Description,Location,Picture FROM Profile where UPI = ?" , [username])
 
         rows = cursor.fetchall()
             
@@ -302,7 +301,7 @@ def save_edit(name,position,description,location):
         #Key for last updated profile
         lastUpdated = str(time.time())
 
-        cursor.execute("UPDATE Profile SET Name = '%s',Position ='%s',Description = '%s',Location = '%s' ,lastUpdated = '%s' WHERE UPI = '%s'" % (name,position,description,location,lastUpdated,username,))
+        cursor.execute("UPDATE Profile SET Name = ?,Position =?,Description = ?,Location = ? ,lastUpdated = ? WHERE UPI = ?" , [name,position,description,location,lastUpdated,username])
 
         #Save database changes and return to userpage
         conn.commit()
@@ -347,7 +346,7 @@ def edit_picture(picture):
 
         picture = ("/static/serverFiles/profile_pictures/%s.jpg" % (username))
 
-        cursor.execute("UPDATE Profile SET Picture = '%s' WHERE UPI = '%s'" % (picture,username,))
+        cursor.execute("UPDATE Profile SET Picture = ? WHERE UPI = ?", [picture,username])
 
         #Save database changes and return to userpage
         conn.commit()

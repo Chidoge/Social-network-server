@@ -207,6 +207,14 @@ class MainApp(object):
 
         return communication.notify()
 
+    @cherrypy.expose
+    def empty_buffer(self):
+	
+
+	destination = cherrypy.session['destination']
+	communication.empty_buffer(destination)
+
+
 #-----------------------------------------END----------------------------------------------#
 
 

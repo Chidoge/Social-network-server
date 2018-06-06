@@ -56,8 +56,8 @@ def receive_message(data):
             cursor = conn.cursor()
 
         #Store the message into database
-        cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES ('%s','%s','%s','%s','%s')" % (sender,destination,message,stamp,'0',))
-        cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES ('%s','%s','%s','%s','%s')" % (sender,destination,message,stamp,'0',))
+        cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)", [sender,destination,message,stamp,'0'])
+        cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)" ,[sender,destination,message,stamp,'0'])
 
         #Save changes and return 0
         conn.commit()
@@ -103,10 +103,12 @@ def send_message(message):
 
             #Show error if ping response is invalid
             if (len(ping_response) == 0 or ping_response[0] != '0'):
+		save_error_message(sender,destination,str(time.time()))
                 users.log_error("/send_message to %s failed | Reason : Ping response was not 0, Response : %s" % (destination,ping_response))
                 return
 
         except urllib2.URLError,exception:
+	    save_error_message(sender,destination,str(time.time()))
             users.log_error("/send_message to %s failed | Reason : URL Error at /ping, Exception : %s" % (destination,exception))
             return
 
@@ -127,10 +129,12 @@ def send_message(message):
                 save_message(message,sender,destination,stamp,'0')
                 return
             else:
+		save_error_message(sender,destination,str(time.time()))
                 users.log_error("/send_message to %s failed | Reason : /receiveMessage response was not 0, Response : %s" % (destination,response))
                 return
 
         except urllib2.URLError,exception:
+	    save_error_message(sender,destination,str(time.time()))
             users.logError("/send_message to %s failed | Reason : URL Error at /receiveMessage, Exception : %s" % (destination,exception))
             return
 
@@ -162,8 +166,8 @@ def save_message(message,sender,destination,stamp,is_file):
         cursor = conn.cursor()
 
     #Insert message row
-    cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES ('%s','%s','%s','%s','%s')" % (sender,destination,message,stamp,is_file,))
-    cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES ('%s','%s','%s','%s','%s')" % (sender,destination,message,stamp,is_file,))
+    cursor.execute("INSERT INTO Messages(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)", [sender,destination,message,stamp,is_file,])
+    cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)", [sender,destination,message,stamp,is_file,])
 
     #Save changes
     conn.commit()
@@ -212,11 +216,13 @@ def send_file(file_data,mime_type):
         stamp = str(int(time.time()))
 
         #Guess an extension for the file type
-        extension = mimetypes.guess_extension(str(mime_type),strict=True)
+	index = mime_type.rfind('/')
+	extension = mime_type[index + 1:]
+	print 'extension is ' + extension
 
         #Prepare file path to store on server
         working_dir = os.path.dirname(__file__)
-        new_filename = working_dir + "/serve/serverFiles/sent_files/" + sender + stamp + extension
+        new_filename = working_dir + "/serve/serverFiles/sent_files/" + sender + stamp + '.' + extension
 
         #Store the file locally
         decoded_file = base64.decodestring(file_data)
@@ -250,7 +256,7 @@ def send_file(file_data,mime_type):
 
 
         #Put compulsory arguments into output dictionary, then json encode it
-        output_dict = {'sender' : sender,'destination' : destination,'file': encoded_file , 'filename' : sender + stamp + extension ,'content_type' : mime_type,'stamp' :stamp}
+        output_dict = {'sender' : sender,'destination' : destination,'file': encoded_file , 'filename' : sender + stamp + '.' + extension ,'content_type' : mime_type,'stamp' :stamp}
         data = json.dumps(output_dict)
 
         #Construct the URL for calling the /receiveFile API of the destination
@@ -266,7 +272,7 @@ def send_file(file_data,mime_type):
             #Make sure they are returning something(for interaction with substandard clients)
             if (len(response) !=0 or response[0] == '0'):
 
-                save_message('/static/serverFiles/sent_files/'+sender+stamp+extension,sender,destination,stamp,'1')
+                save_message('/static/serverFiles/sent_files/'+sender+stamp+'.'+extension,sender,destination,stamp,'1')
                 return
             else:
                 users.log_error("/send_file to %s failed | Reason : /receiveFile response was not 0, Response : %s" % (destination,response))
@@ -349,6 +355,25 @@ def receive_file(data):
 
 
 
+def save_error_message(sender,destination,stamp):
+	
+    #Prepare database for message storing
+    working_dir = os.path.dirname(__file__)
+    db_filename = working_dir + "/db/messages.db"
+    with open (db_filename,'r+'):
+        conn = sqlite3.connect(db_filename)
+        cursor = conn.cursor()
+
+    message = 'broken'
+    #Insert message row
+    cursor.execute("INSERT INTO MessageBuffer(Sender,Destination,Message,Stamp,isFile) VALUES (?,?,?,?,?)", [sender,destination,message,stamp,'-1',])
+
+    #Save changes
+    conn.commit()
+    conn.close()
+    
+
+
 
 
 """This function is used to check the requests of a certain user in the past minute.
@@ -375,14 +400,14 @@ def check_rate_limit(sender):
         return '1'
     else:
         if (time.time()- float(str(row[0][0])) > 60):
-            cursor.execute("UPDATE UserList SET lastLimit = '%s',requestsPastMinute = '%s' WHERE UPI = '%s'" % (str(time.time()),'1',sender,))
+            cursor.execute("UPDATE UserList SET lastLimit = ?,requestsPastMinute = ? WHERE UPI = ?" , [str(time.time()),'1',sender])
             conn.commit()
             conn.close()
             return '0'
         else:
             #Row 1 is the requests in the past minute
             if (int(str(row[0][1])) < 60):
-                cursor.execute("UPDATE UserList SET requestsPastMinute = '%s' WHERE UPI = '%s'" % (str(int(str(row[0][1])) + 1),sender,))
+                cursor.execute("UPDATE UserList SET requestsPastMinute = ? WHERE UPI = ?" , [str(int(str(row[0][1])) + 1),sender])
                 conn.commit()
                 conn.close()
                 return '0'
@@ -415,7 +440,7 @@ def get_chat_page(page,sender,destination):
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
 
-    cursor.execute("SELECT Picture FROM Profile WHERE UPI = '%s'" % (destination,))
+    cursor.execute("SELECT Picture FROM Profile WHERE UPI = ?",[destination])
     row = cursor.fetchone()
 
     #Use anon picture if they dont have a picture
@@ -437,7 +462,7 @@ def get_chat_page(page,sender,destination):
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
 
-    cursor.execute("SELECT Message,Sender,isFile FROM Messages WHERE (Sender = '%s' AND Destination = '%s') OR (Sender = '%s' AND Destination = '%s') ORDER BY Stamp" % (destination,sender,sender,destination,))
+    cursor.execute("SELECT Message,Sender,isFile FROM Messages WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp", [destination,sender,sender,destination])
     rows = cursor.fetchall()
 
     #For each line of dialogue, add to the chat box
@@ -479,7 +504,7 @@ def get_chat_page(page,sender,destination):
     """
 def add_embedded_viewer(file_source):
 
-    if (file_source.endswith('jpg') or file_source.endswith('jpe') or file_source.endswith('png') or file_source.endswith('gif')):
+    if (file_source.endswith('jpg') or file_source.endswith('jpe') or file_source.endswith('png') or file_source.endswith('gif') or file_source.endswith('jpeg'))	:
         page = '<div class = "chat-message-image">'
         page += '<img src="' + file_source + '">'
         page += '</div>'
@@ -524,7 +549,7 @@ def acknowledge(data):
         f = open(db_filename,"r")
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
-        cursor.execute("SELECT Message from Messages WHERE UPI = '%s' AND Stamp = '%s'" % (sender,stamp,))
+        cursor.execute("SELECT Message from Messages WHERE UPI = ? AND Stamp = ?" , [sender,stamp])
         row = cursor.fetchone()
 
         if (hashing_standard == '0'):
@@ -583,7 +608,7 @@ def refresh_chat():
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()  
 
-    cursor.execute("SELECT Picture FROM Profile WHERE UPI = '%s'" % (destination,))
+    cursor.execute("SELECT Picture FROM Profile WHERE UPI = ?",[destination])
     row = cursor.fetchone()
 
     #Use anon picture if they dont have a picture
@@ -606,7 +631,7 @@ def refresh_chat():
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
 
-    cursor.execute("SELECT Message,Sender,isFile,Stamp FROM MessageBuffer WHERE (Sender = '%s' AND Destination = '%s') OR (Sender = '%s' AND Destination = '%s') ORDER BY Stamp" % (destination,sender,sender,destination,))
+    cursor.execute("SELECT Message,Sender,isFile,Stamp FROM MessageBuffer WHERE (Sender = ? AND Destination = ?) OR (Sender = ? AND Destination = ?) ORDER BY Stamp" , [destination,sender,sender,destination])
     rows = cursor.fetchall()
 
     #For each line of dialogue, add to the chat box
@@ -624,7 +649,11 @@ def refresh_chat():
             sender = 'friend'
             #acknowledge_message(str(row[0]),destination,str(row[2]),str(row[3]))
 
-        else:
+        elif (str(row[2]) == '-1'):
+	    users.log_error('failed to send ')
+	    page += 'b;'
+	    sender = 'self'
+	else:
             page += 's'
             if (str(row[2]) == '1'):
                 page +=  add_embedded_viewer(str(row[0]))
@@ -633,10 +662,6 @@ def refresh_chat():
             page += '</div>;'
             sender = 'self'
 
-
-    cursor.execute("DELETE FROM MessageBuffer WHERE SENDER = '%s' OR DESTINATION = '%s'" % (destination,destination,))
-    conn.commit()
-    conn.close()
 
     output_dict = {'newChat' : page, 'sender' : sender}
     out = json.dumps(output_dict)
@@ -707,7 +732,7 @@ def notify():
         conn = sqlite3.connect(db_filename)
         cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM MessageBuffer WHERE Destination = '%s'" % (sender,))
+    cursor.execute("SELECT * FROM MessageBuffer WHERE Destination = ?" ,[sender])
     rows = cursor.fetchall()
 
     #Check message buffer for unread messages and get their senders
@@ -730,3 +755,20 @@ def notify():
         output_dict = {'newMessage': 'False'}
         out = json.dumps(output_dict)
         return out
+
+
+
+
+def empty_buffer(destination):
+
+    #Get new messages from destination or sender
+    working_dir = os.path.dirname(__file__)
+    db_filename = working_dir + "/db/messages.db"
+    with open (db_filename,'r+'):
+        conn = sqlite3.connect(db_filename)
+        cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM MessageBuffer WHERE SENDER = ? OR DESTINATION = ?" ,[destination,destination])
+    conn.commit()
+    conn.close()
+	
